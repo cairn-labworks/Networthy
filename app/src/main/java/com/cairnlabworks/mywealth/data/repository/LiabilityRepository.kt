@@ -9,6 +9,9 @@ class LiabilityRepository(private val dao: LiabilityDao) {
     fun observeForPortfolio(portfolioId: Long): Flow<List<LiabilityEntity>> =
         dao.observeForPortfolio(portfolioId)
 
+    suspend fun getForPortfolio(portfolioId: Long): List<LiabilityEntity> =
+        dao.getForPortfolio(portfolioId)
+
     fun observeById(id: Long): Flow<LiabilityEntity?> = dao.observeById(id)
 
     suspend fun getById(id: Long): LiabilityEntity? = dao.getById(id)

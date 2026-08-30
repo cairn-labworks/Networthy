@@ -98,8 +98,12 @@ class HomeViewModel(
     )
 
     init {
-        viewModelScope.launch { portfolioRepository.ensureDefaultPortfolio() }
-        viewModelScope.launch { fxRepository.ensureFreshRates() }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            portfolioRepository.ensureDefaultPortfolio()
+        }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            fxRepository.ensureFreshRates()
+        }
     }
 
     fun selectPortfolio(id: Long) {

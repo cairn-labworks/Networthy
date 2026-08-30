@@ -14,6 +14,9 @@ class AssetRepository(
     fun observeForPortfolio(portfolioId: Long): Flow<List<AssetEntity>> =
         dao.observeForPortfolio(portfolioId)
 
+    suspend fun getForPortfolio(portfolioId: Long): List<AssetEntity> =
+        dao.getForPortfolio(portfolioId)
+
     fun observeById(id: Long): Flow<AssetEntity?> = dao.observeById(id)
 
     suspend fun getById(id: Long): AssetEntity? = dao.getById(id)
