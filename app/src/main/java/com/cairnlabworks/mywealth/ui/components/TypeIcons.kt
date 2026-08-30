@@ -1,6 +1,8 @@
 package com.cairnlabworks.mywealth.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Category
@@ -12,17 +14,15 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HomeWork
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.cairnlabworks.mywealth.domain.model.AssetType
 import com.cairnlabworks.mywealth.domain.model.LiabilityType
 
 fun AssetType.icon(): ImageVector = when (this) {
-    AssetType.STOCK -> Icons.Filled.ShowChart
+    AssetType.STOCK -> Icons.AutoMirrored.Filled.ShowChart
     AssetType.MUTUAL_FUND -> Icons.Filled.PieChart
     AssetType.CRYPTO -> Icons.Filled.CurrencyBitcoin
     AssetType.GOLD -> Icons.Filled.Diamond
@@ -39,6 +39,6 @@ fun LiabilityType.icon(): ImageVector = when (this) {
     LiabilityType.MORTGAGE -> Icons.Filled.HomeWork
     LiabilityType.CREDIT_CARD -> Icons.Filled.CreditCard
     LiabilityType.PENDING_PAYMENT -> Icons.Filled.Schedule
-    LiabilityType.TAX -> Icons.Filled.ReceiptLong
+    LiabilityType.TAX -> Icons.AutoMirrored.Filled.ReceiptLong
     LiabilityType.OTHER -> Icons.Filled.RequestQuote
 }

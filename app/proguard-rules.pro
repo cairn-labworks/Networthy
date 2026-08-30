@@ -15,3 +15,8 @@
 -dontwarn okio.**
 -dontwarn retrofit2.**
 -keepattributes Exceptions
+
+# Tink (pulled in by androidx.security-crypto) references compile-only annotations
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.**
+-dontwarn javax.annotation.concurrent.**

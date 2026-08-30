@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -70,14 +70,14 @@ fun NetWorthCard(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 MetricTile(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.TrendingUp,
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
                     accent = FinanceTheme.colors.positive,
                     label = "Assets",
                     amount = CurrencyUtil.format(summary.totalAssets, summary.baseCurrency),
                 )
                 MetricTile(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.TrendingDown,
+                    icon = Icons.AutoMirrored.Filled.TrendingDown,
                     accent = FinanceTheme.colors.negative,
                     label = "Liabilities",
                     amount = CurrencyUtil.format(summary.totalLiabilities, summary.baseCurrency),
