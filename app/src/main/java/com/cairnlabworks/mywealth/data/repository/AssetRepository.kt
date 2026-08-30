@@ -3,6 +3,7 @@ package com.cairnlabworks.mywealth.data.repository
 import com.cairnlabworks.mywealth.data.local.dao.AssetDao
 import com.cairnlabworks.mywealth.data.local.entity.AssetEntity
 import com.cairnlabworks.mywealth.data.remote.stock.StockPriceService
+import com.cairnlabworks.mywealth.data.remote.stock.StockQuote
 import kotlinx.coroutines.flow.Flow
 
 class AssetRepository(
@@ -26,6 +27,10 @@ class AssetRepository(
     }
 
     suspend fun delete(id: Long) = dao.deleteById(id)
+
+    /** Looks up a live quote for a symbol without persisting anything. */
+    suspend fun fetchQuote(symbol: String): Result<StockQuote> =
+        stockPriceService.fetchQuote(symbol)
 
     /**
      * Refreshes the market price for a single asset (by symbol) and persists it.
