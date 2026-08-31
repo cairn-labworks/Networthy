@@ -23,13 +23,19 @@ class AssetRepository(
 
     suspend fun save(asset: AssetEntity): Long {
         val stamped = asset.copy(updatedAt = System.currentTimeMillis())
-        return if (asset.id == 0L) dao.insert(stamped) else {
+        return if (asset.id == 0L) {
+            val position = dao.maxPosition(asset.portfolioId, asset.type) + 1
+            dao.insert(stamped.copy(position = position))
+        } else {
             dao.update(stamped)
             asset.id
         }
     }
 
     suspend fun delete(id: Long) = dao.deleteById(id)
+
+    /** Persists a new custom order for a set of assets (typically one type). */
+    suspend fun updateOrder(orderedIds: List<Long>) = dao.updatePositions(orderedIds)
 
     /** Looks up a live quote for a symbol without persisting anything. */
     suspend fun fetchQuote(symbol: String): Result<StockQuote> =

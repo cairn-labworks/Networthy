@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.cairnlabworks.mywealth.data.local.dao.AssetDao
 import com.cairnlabworks.mywealth.data.local.dao.FxRateDao
 import com.cairnlabworks.mywealth.data.local.dao.LiabilityDao
@@ -23,7 +25,7 @@ import net.sqlcipher.database.SupportFactory
         LiabilityEntity::class,
         FxRateEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -36,6 +38,14 @@ abstract class MyWealthDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "mywealth.db"
+
+        /** Adds the custom-sort `position` column to assets and liabilities. */
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE assets ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE liabilities ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         /**
          * Builds the encrypted database. The [passphrase] is consumed (zeroed) by
@@ -50,6 +60,7 @@ abstract class MyWealthDatabase : RoomDatabase() {
                 DATABASE_NAME,
             )
                 .openHelperFactory(factory)
+                .addMigrations(MIGRATION_1_2)
                 .fallbackToDestructiveMigration()
                 .build()
         }

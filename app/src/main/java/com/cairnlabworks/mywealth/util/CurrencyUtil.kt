@@ -33,26 +33,38 @@ object CurrencyUtil {
         Currency.getInstance(code).getDisplayName(Locale.getDefault())
     }.getOrDefault(code)
 
-    fun symbol(code: String): String = runCatching {
-        Currency.getInstance(code).getSymbol(Locale.getDefault())
-    }.getOrDefault(code)
-
     /** Fraction digits appropriate for the currency (e.g. 0 for JPY, 2 for USD). */
     fun fractionDigits(code: String): Int = runCatching {
         Currency.getInstance(code).defaultFractionDigits.coerceAtLeast(0)
     }.getOrDefault(2)
 
-    /** Formats [amount] as a localized currency string, e.g. "$1,234.50". */
+    /**
+     * The currency symbol, with a space inserted between letter prefixes and the
+     * currency sign so codes like USD read as "US $" instead of "US$".
+     */
+    fun symbol(code: String): String = spaceSymbol(rawSymbol(code))
+
+    private fun rawSymbol(code: String): String = runCatching {
+        Currency.getInstance(code).getSymbol(Locale.getDefault())
+    }.getOrDefault(code)
+
+    private fun spaceSymbol(symbol: String): String =
+        symbol.replace(Regex("(\\p{L})(\\p{Sc})"), "$1 $2")
+
+    /**
+     * Formats [amount] as a currency string with grouping and no decimals,
+     * e.g. "US $1,234" or "₹1,234". Decimals are intentionally truncated.
+     */
     fun format(amount: Double, code: String): String {
-        val format = NumberFormat.getCurrencyInstance(Locale.getDefault())
-        runCatching { format.currency = Currency.getInstance(code) }
-        val digits = fractionDigits(code)
-        format.minimumFractionDigits = digits
-        format.maximumFractionDigits = digits
-        return format.format(amount)
+        val symbol = symbol(code)
+        val numberFormat = NumberFormat.getIntegerInstance(Locale.getDefault())
+        numberFormat.maximumFractionDigits = 0
+        val rounded = Math.round(amount)
+        val sign = if (rounded < 0) "-" else ""
+        return "$sign$symbol${numberFormat.format(kotlin.math.abs(rounded))}"
     }
 
-    /** Compact form for large headline figures, e.g. "$1.2M". */
+    /** Compact form for large headline figures, e.g. "US $1.2M". */
     fun formatCompact(amount: Double, code: String): String {
         val symbol = symbol(code)
         val abs = kotlin.math.abs(amount)

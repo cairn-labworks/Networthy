@@ -28,6 +28,8 @@ data class LiabilityEntity(
     /** Outstanding amount owed, in [currency]. */
     val amount: Double,
     val notes: String? = null,
+    /** User-defined sort order within this liability's type. Lower shows first. */
+    val position: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 ) {

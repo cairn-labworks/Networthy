@@ -32,6 +32,7 @@ data class BackupAsset(
     @SerializedName("lastPriceTimestamp") val lastPriceTimestamp: Long?,
     @SerializedName("manualValue") val manualValue: Double?,
     @SerializedName("notes") val notes: String?,
+    @SerializedName("position") val position: Int = 0,
 )
 
 data class BackupLiability(
@@ -40,6 +41,7 @@ data class BackupLiability(
     @SerializedName("currency") val currency: String,
     @SerializedName("amount") val amount: Double,
     @SerializedName("notes") val notes: String?,
+    @SerializedName("position") val position: Int = 0,
 )
 
 data class ImportResult(

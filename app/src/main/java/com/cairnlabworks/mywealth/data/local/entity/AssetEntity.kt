@@ -39,6 +39,8 @@ data class AssetEntity(
     /** Flat total value (e.g. cash, property). Used by FLAT valuation. */
     val manualValue: Double? = null,
     val notes: String? = null,
+    /** User-defined sort order within this asset's type. Lower shows first. */
+    val position: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 ) {

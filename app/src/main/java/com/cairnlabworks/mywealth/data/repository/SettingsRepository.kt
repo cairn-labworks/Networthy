@@ -60,6 +60,22 @@ class SettingsRepository(context: Context) {
         }
     }
 
+    /** Observes the custom category order for a portfolio section (asset/liability). */
+    fun categoryOrder(portfolioId: Long, section: String): Flow<List<String>> =
+        dataStore.data.map { prefs ->
+            prefs[categoryOrderKey(portfolioId, section)]
+                ?.split(',')
+                ?.filter { it.isNotBlank() }
+                ?: emptyList()
+        }
+
+    suspend fun setCategoryOrder(portfolioId: Long, section: String, order: List<String>) {
+        dataStore.edit { it[categoryOrderKey(portfolioId, section)] = order.joinToString(",") }
+    }
+
+    private fun categoryOrderKey(portfolioId: Long, section: String) =
+        stringPreferencesKey("cat_order_${section}_$portfolioId")
+
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -67,4 +83,9 @@ class SettingsRepository(context: Context) {
         val KEY_APP_LOCK = booleanPreferencesKey("app_lock_enabled")
         val KEY_SELECTED_PORTFOLIO = longPreferencesKey("selected_portfolio_id")
     }
+}
+
+object CategorySection {
+    const val ASSET = "asset"
+    const val LIABILITY = "liability"
 }

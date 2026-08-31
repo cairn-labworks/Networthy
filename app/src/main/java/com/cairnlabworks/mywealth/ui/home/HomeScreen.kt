@@ -1,6 +1,9 @@
 package com.cairnlabworks.mywealth.ui.home
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +15,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.DragIndicator
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -38,24 +47,30 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cairnlabworks.mywealth.data.local.entity.AssetEntity
+import com.cairnlabworks.mywealth.data.local.entity.LiabilityEntity
 import com.cairnlabworks.mywealth.di.ViewModelFactories
 import com.cairnlabworks.mywealth.di.rememberAppContainer
 import com.cairnlabworks.mywealth.domain.model.ValuationMode
+import com.cairnlabworks.mywealth.ui.components.DragReorderColumn
 import com.cairnlabworks.mywealth.ui.components.EmptyState
-import com.cairnlabworks.mywealth.ui.components.HoldingRow
 import com.cairnlabworks.mywealth.ui.components.SectionHeader
+import com.cairnlabworks.mywealth.ui.components.TypeAvatar
 import com.cairnlabworks.mywealth.ui.components.icon
 import com.cairnlabworks.mywealth.util.CurrencyUtil
 import kotlinx.coroutines.launch
@@ -80,7 +95,7 @@ fun HomeScreen(
 
     if (message != null) {
         val text = message!!
-        androidx.compose.runtime.LaunchedEffect(text) {
+        LaunchedEffect(text) {
             snackbarHostState.showSnackbar(text)
             viewModel.consumeMessage()
         }
@@ -154,8 +169,7 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            val active = state.activePortfolio
-            if (active != null) {
+            if (state.activePortfolio != null) {
                 ExtendedFloatingActionButton(
                     onClick = { addSheetOpen = true },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
@@ -177,6 +191,18 @@ fun HomeScreen(
                 onOpenLiability = { liability ->
                     onOpenLiabilityEditor(liability.portfolioId, liability.id)
                 },
+                onAssetCategoriesReordered = { groups ->
+                    viewModel.onAssetCategoriesReordered(groups.map { it.type })
+                },
+                onLiabilityCategoriesReordered = { groups ->
+                    viewModel.onLiabilityCategoriesReordered(groups.map { it.type })
+                },
+                onAssetItemsReordered = { items ->
+                    viewModel.onAssetItemsReordered(items.map { it.id })
+                },
+                onLiabilityItemsReordered = { items ->
+                    viewModel.onLiabilityItemsReordered(items.map { it.id })
+                },
             )
         }
     }
@@ -193,21 +219,21 @@ fun HomeScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
-                DropdownMenuItemRow(
+                AddSheetRow(
                     icon = Icons.Filled.AccountBalanceWallet,
                     label = "New asset",
                     onClick = {
-                        val pid = active?.id ?: return@DropdownMenuItemRow
+                        val pid = active?.id ?: return@AddSheetRow
                         scope.launch { sheetState.hide() }
                         addSheetOpen = false
                         onOpenAssetEditor(pid, 0L)
                     },
                 )
-                DropdownMenuItemRow(
+                AddSheetRow(
                     icon = Icons.Filled.Inbox,
                     label = "New liability",
                     onClick = {
-                        val pid = active?.id ?: return@DropdownMenuItemRow
+                        val pid = active?.id ?: return@AddSheetRow
                         scope.launch { sheetState.hide() }
                         addSheetOpen = false
                         onOpenLiabilityEditor(pid, 0L)
@@ -219,7 +245,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun DropdownMenuItemRow(
+private fun AddSheetRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     onClick: () -> Unit,
@@ -242,75 +268,277 @@ private fun HomeContent(
     state: HomeUiState,
     contentPadding: PaddingValues,
     onOpenAsset: (AssetEntity) -> Unit,
-    onOpenLiability: (com.cairnlabworks.mywealth.data.local.entity.LiabilityEntity) -> Unit,
+    onOpenLiability: (LiabilityEntity) -> Unit,
+    onAssetCategoriesReordered: (List<AssetCategoryGroup>) -> Unit,
+    onLiabilityCategoriesReordered: (List<LiabilityCategoryGroup>) -> Unit,
+    onAssetItemsReordered: (List<AssetEntity>) -> Unit,
+    onLiabilityItemsReordered: (List<LiabilityEntity>) -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            top = contentPadding.calculateTopPadding() + 8.dp,
-            bottom = contentPadding.calculateBottomPadding() + 96.dp,
-        ),
+    // Remembers which category cards are expanded, keyed by section + type.
+    val expanded = remember { mutableStateMapOf<String, Boolean>() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(
+                top = contentPadding.calculateTopPadding() + 8.dp,
+                bottom = contentPadding.calculateBottomPadding() + 96.dp,
+            ),
     ) {
-        item {
-            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                NetWorthCard(summary = state.summary)
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            NetWorthCard(summary = state.summary)
+        }
+
+        SectionHeader(
+            title = "Assets",
+            trailing = CurrencyUtil.format(state.summary.totalAssets, state.baseCurrency),
+        )
+        if (!state.hasAnyAssets) {
+            EmptyState(
+                icon = Icons.Filled.AccountBalanceWallet,
+                title = "No assets yet",
+                subtitle = "Add stocks, cash, property and more to track their value.",
+            )
+        } else {
+            DragReorderColumn(
+                items = state.assetGroups,
+                keyOf = { it.type },
+                onReordered = onAssetCategoriesReordered,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalSpacing = 12.dp,
+            ) { group, isDragging, handle ->
+                AssetCategoryCard(
+                    group = group,
+                    isDragging = isDragging,
+                    dragHandle = handle,
+                    expandedKey = "asset-${group.type.name}",
+                    expandedMap = expanded,
+                    onOpenAsset = onOpenAsset,
+                    onItemsReordered = onAssetItemsReordered,
+                )
             }
         }
 
-        item {
-            SectionHeader(
-                title = "Assets",
-                trailing = CurrencyUtil.format(state.summary.totalAssets, state.baseCurrency),
+        Spacer(Modifier.height(12.dp))
+
+        SectionHeader(
+            title = "Liabilities",
+            trailing = CurrencyUtil.format(state.summary.totalLiabilities, state.baseCurrency),
+        )
+        if (!state.hasAnyLiabilities) {
+            EmptyState(
+                icon = Icons.Filled.Inbox,
+                title = "No liabilities",
+                subtitle = "Track loans, credit cards and pending payments here.",
+            )
+        } else {
+            DragReorderColumn(
+                items = state.liabilityGroups,
+                keyOf = { it.type },
+                onReordered = onLiabilityCategoriesReordered,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalSpacing = 12.dp,
+            ) { group, isDragging, handle ->
+                LiabilityCategoryCard(
+                    group = group,
+                    isDragging = isDragging,
+                    dragHandle = handle,
+                    expandedKey = "liability-${group.type.name}",
+                    expandedMap = expanded,
+                    onOpenLiability = onOpenLiability,
+                    onItemsReordered = onLiabilityItemsReordered,
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun AssetCategoryCard(
+    group: AssetCategoryGroup,
+    isDragging: Boolean,
+    dragHandle: Modifier,
+    expandedKey: String,
+    expandedMap: MutableMap<String, Boolean>,
+    onOpenAsset: (AssetEntity) -> Unit,
+    onItemsReordered: (List<AssetEntity>) -> Unit,
+) {
+    val isExpanded = expandedMap[expandedKey] == true
+    CategoryCardShell(
+        icon = group.type.icon(),
+        title = group.type.displayName,
+        count = group.items.size,
+        totalText = CurrencyUtil.format(group.total, group.baseCurrency),
+        isExpanded = isExpanded,
+        isDragging = isDragging,
+        dragHandle = dragHandle,
+        onToggle = { expandedMap[expandedKey] = !isExpanded },
+    ) {
+        DragReorderColumn(
+            items = group.items,
+            keyOf = { it.id },
+            onReordered = onItemsReordered,
+        ) { asset, itemDragging, itemHandle ->
+            HoldingItemRow(
+                title = asset.name,
+                subtitle = assetSubtitle(asset, group.baseCurrency),
+                amount = CurrencyUtil.format(asset.value, asset.currency),
+                isDragging = itemDragging,
+                dragHandle = itemHandle,
+                onOpen = { onOpenAsset(asset) },
             )
         }
-        if (state.assets.isEmpty()) {
-            item {
-                EmptyState(
-                    icon = Icons.Filled.AccountBalanceWallet,
-                    title = "No assets yet",
-                    subtitle = "Add stocks, cash, property and more to track their value.",
-                )
-            }
-        } else {
-            items(state.assets, key = { "asset-${it.id}" }) { asset ->
-                HoldingRow(
-                    icon = asset.type.icon(),
-                    title = asset.name,
-                    subtitle = assetSubtitle(asset, state.baseCurrency),
-                    amount = CurrencyUtil.format(asset.value, asset.currency),
-                    onClick = { onOpenAsset(asset) },
-                )
-            }
-        }
+    }
+}
 
-        item {
-            SectionHeader(
-                title = "Liabilities",
-                trailing = CurrencyUtil.format(state.summary.totalLiabilities, state.baseCurrency),
+@Composable
+private fun LiabilityCategoryCard(
+    group: LiabilityCategoryGroup,
+    isDragging: Boolean,
+    dragHandle: Modifier,
+    expandedKey: String,
+    expandedMap: MutableMap<String, Boolean>,
+    onOpenLiability: (LiabilityEntity) -> Unit,
+    onItemsReordered: (List<LiabilityEntity>) -> Unit,
+) {
+    val isExpanded = expandedMap[expandedKey] == true
+    CategoryCardShell(
+        icon = group.type.icon(),
+        title = group.type.displayName,
+        count = group.items.size,
+        totalText = CurrencyUtil.format(group.total, group.baseCurrency),
+        isExpanded = isExpanded,
+        isDragging = isDragging,
+        dragHandle = dragHandle,
+        onToggle = { expandedMap[expandedKey] = !isExpanded },
+    ) {
+        DragReorderColumn(
+            items = group.items,
+            keyOf = { it.id },
+            onReordered = onItemsReordered,
+        ) { liability, itemDragging, itemHandle ->
+            HoldingItemRow(
+                title = liability.name,
+                subtitle = currencyNote(liability.currency, group.baseCurrency),
+                amount = CurrencyUtil.format(liability.value, liability.currency),
+                isDragging = itemDragging,
+                dragHandle = itemHandle,
+                onOpen = { onOpenLiability(liability) },
             )
         }
-        if (state.liabilities.isEmpty()) {
-            item {
-                EmptyState(
-                    icon = Icons.Filled.Inbox,
-                    title = "No liabilities",
-                    subtitle = "Track loans, credit cards and pending payments here.",
+    }
+}
+
+@Composable
+private fun CategoryCardShell(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    count: Int,
+    totalText: String,
+    isExpanded: Boolean,
+    isDragging: Boolean,
+    dragHandle: Modifier,
+    onToggle: () -> Unit,
+    expandedContent: @Composable () -> Unit,
+) {
+    val elevation by animateDpAsState(if (isDragging) 8.dp else 1.dp, label = "cardElevation")
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Long-press anywhere on the header to reorder the category.
+                    .then(dragHandle)
+                    // A short tap expands / collapses the category.
+                    .pointerInput(title) { detectTapGestures { onToggle() } }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TypeAvatar(icon)
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = if (count == 1) "1 item" else "$count items",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = totalText,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        } else {
-            items(state.liabilities, key = { "liability-${it.id}" }) { liability ->
-                HoldingRow(
-                    icon = liability.type.icon(),
-                    title = liability.name,
-                    subtitle = liability.type.displayName +
-                        currencyBadge(liability.currency, state.baseCurrency),
-                    amount = CurrencyUtil.format(liability.value, liability.currency),
-                    onClick = { onOpenLiability(liability) },
+            if (isExpanded) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(4.dp))
+                expandedContent()
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun HoldingItemRow(
+    title: String,
+    subtitle: String,
+    amount: String,
+    isDragging: Boolean,
+    dragHandle: Modifier,
+    onOpen: () -> Unit,
+) {
+    val background =
+        if (isDragging) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            // Long-press to reorder within this category; tap to edit.
+            .then(dragHandle)
+            .pointerInput(title, amount) { detectTapGestures { onOpen() } }
+            .background(background)
+            .padding(start = 20.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (subtitle.isNotBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-
-        item { Spacer(Modifier.height(8.dp)) }
+        Text(text = amount, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.width(8.dp))
+        Icon(
+            imageVector = Icons.Filled.DragIndicator,
+            contentDescription = "Drag to reorder",
+            tint = MaterialTheme.colorScheme.outline,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 
@@ -327,12 +555,12 @@ private fun assetSubtitle(asset: AssetEntity, baseCurrency: String): String {
             "$qty ${asset.type.unitLabel ?: ""}".trim()
         }
 
-        ValuationMode.FLAT -> asset.type.displayName
+        ValuationMode.FLAT -> ""
     }
-    return core + currencyBadge(asset.currency, baseCurrency)
+    return (core + currencyNote(asset.currency, baseCurrency)).trim()
 }
 
-private fun currencyBadge(currency: String, baseCurrency: String): String =
+private fun currencyNote(currency: String, baseCurrency: String): String =
     if (currency != baseCurrency) "  ·  $currency" else ""
 
 private fun formatQuantity(value: Double): String =

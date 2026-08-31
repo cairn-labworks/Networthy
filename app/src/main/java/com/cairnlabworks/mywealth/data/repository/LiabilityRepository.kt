@@ -18,11 +18,17 @@ class LiabilityRepository(private val dao: LiabilityDao) {
 
     suspend fun save(liability: LiabilityEntity): Long {
         val stamped = liability.copy(updatedAt = System.currentTimeMillis())
-        return if (liability.id == 0L) dao.insert(stamped) else {
+        return if (liability.id == 0L) {
+            val position = dao.maxPosition(liability.portfolioId, liability.type) + 1
+            dao.insert(stamped.copy(position = position))
+        } else {
             dao.update(stamped)
             liability.id
         }
     }
 
     suspend fun delete(id: Long) = dao.deleteById(id)
+
+    /** Persists a new custom order for a set of liabilities (typically one type). */
+    suspend fun updateOrder(orderedIds: List<Long>) = dao.updatePositions(orderedIds)
 }

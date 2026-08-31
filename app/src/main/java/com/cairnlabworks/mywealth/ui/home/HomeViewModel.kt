@@ -6,11 +6,15 @@ import com.cairnlabworks.mywealth.data.local.entity.AssetEntity
 import com.cairnlabworks.mywealth.data.local.entity.LiabilityEntity
 import com.cairnlabworks.mywealth.data.local.entity.PortfolioEntity
 import com.cairnlabworks.mywealth.data.repository.AssetRepository
+import com.cairnlabworks.mywealth.data.repository.CategorySection
+import com.cairnlabworks.mywealth.data.repository.CurrencyConverter
 import com.cairnlabworks.mywealth.data.repository.FxRepository
 import com.cairnlabworks.mywealth.data.repository.LiabilityRepository
 import com.cairnlabworks.mywealth.data.repository.NetWorthCalculator
 import com.cairnlabworks.mywealth.data.repository.PortfolioRepository
 import com.cairnlabworks.mywealth.data.repository.SettingsRepository
+import com.cairnlabworks.mywealth.domain.model.AssetType
+import com.cairnlabworks.mywealth.domain.model.LiabilityType
 import com.cairnlabworks.mywealth.domain.model.NetWorthSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,10 +33,13 @@ data class HomeUiState(
     val activePortfolio: PortfolioEntity? = null,
     val baseCurrency: String = "USD",
     val summary: NetWorthSummary = NetWorthSummary.empty("USD"),
-    val assets: List<AssetEntity> = emptyList(),
-    val liabilities: List<LiabilityEntity> = emptyList(),
+    val assetGroups: List<AssetCategoryGroup> = emptyList(),
+    val liabilityGroups: List<LiabilityCategoryGroup> = emptyList(),
     val isRefreshing: Boolean = false,
-)
+) {
+    val hasAnyAssets: Boolean get() = assetGroups.isNotEmpty()
+    val hasAnyLiabilities: Boolean get() = liabilityGroups.isNotEmpty()
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
@@ -72,7 +79,9 @@ class HomeViewModel(
             combine(
                 assetRepository.observeForPortfolio(active.id),
                 liabilityRepository.observeForPortfolio(active.id),
-            ) { assets, liabilities ->
+                settingsRepository.categoryOrder(active.id, CategorySection.ASSET),
+                settingsRepository.categoryOrder(active.id, CategorySection.LIABILITY),
+            ) { assets, liabilities, assetOrder, liabilityOrder ->
                 val summary = NetWorthCalculator.compute(
                     assets = assets,
                     liabilities = liabilities,
@@ -85,8 +94,10 @@ class HomeViewModel(
                     activePortfolio = active,
                     baseCurrency = base.baseCurrency,
                     summary = summary,
-                    assets = assets,
-                    liabilities = liabilities,
+                    assetGroups = buildAssetGroups(assets, assetOrder, base.converter, base.baseCurrency),
+                    liabilityGroups = buildLiabilityGroups(
+                        liabilities, liabilityOrder, base.converter, base.baseCurrency,
+                    ),
                     isRefreshing = base.isRefreshing,
                 )
             }
@@ -126,8 +137,94 @@ class HomeViewModel(
         }
     }
 
+    /** Persists a new order of asset category cards. */
+    fun onAssetCategoriesReordered(orderedTypes: List<AssetType>) {
+        val active = uiState.value.activePortfolio ?: return
+        viewModelScope.launch {
+            settingsRepository.setCategoryOrder(
+                active.id, CategorySection.ASSET, orderedTypes.map { it.name },
+            )
+        }
+    }
+
+    fun onLiabilityCategoriesReordered(orderedTypes: List<LiabilityType>) {
+        val active = uiState.value.activePortfolio ?: return
+        viewModelScope.launch {
+            settingsRepository.setCategoryOrder(
+                active.id, CategorySection.LIABILITY, orderedTypes.map { it.name },
+            )
+        }
+    }
+
+    /** Persists a new order of asset items within a single type. */
+    fun onAssetItemsReordered(orderedIds: List<Long>) {
+        viewModelScope.launch { assetRepository.updateOrder(orderedIds) }
+    }
+
+    fun onLiabilityItemsReordered(orderedIds: List<Long>) {
+        viewModelScope.launch { liabilityRepository.updateOrder(orderedIds) }
+    }
+
     fun consumeMessage() {
         _messages.value = null
+    }
+
+    private fun buildAssetGroups(
+        assets: List<AssetEntity>,
+        order: List<String>,
+        converter: CurrencyConverter,
+        baseCurrency: String,
+    ): List<AssetCategoryGroup> {
+        val byType = assets.groupBy { it.type }
+        val orderedTypes = orderTypes(byType.keys, order) { AssetType.fromName(it) }
+        return orderedTypes.map { type ->
+            val items = byType.getValue(type)
+            AssetCategoryGroup(
+                type = type,
+                total = items.sumOf { converter.convert(it.value, it.currency, baseCurrency) },
+                baseCurrency = baseCurrency,
+                items = items,
+            )
+        }
+    }
+
+    private fun buildLiabilityGroups(
+        liabilities: List<LiabilityEntity>,
+        order: List<String>,
+        converter: CurrencyConverter,
+        baseCurrency: String,
+    ): List<LiabilityCategoryGroup> {
+        val byType = liabilities.groupBy { it.type }
+        val orderedTypes = orderTypes(byType.keys, order) { LiabilityType.fromName(it) }
+        return orderedTypes.map { type ->
+            val items = byType.getValue(type)
+            LiabilityCategoryGroup(
+                type = type,
+                total = items.sumOf { converter.convert(it.value, it.currency, baseCurrency) },
+                baseCurrency = baseCurrency,
+                items = items,
+            )
+        }
+    }
+
+    /**
+     * Orders the present [types] using the saved [order] (a list of enum names).
+     * Types missing from the saved order are appended in natural (enum) order,
+     * so newly added categories show up at the bottom.
+     */
+    private fun <T : Enum<T>> orderTypes(
+        types: Set<T>,
+        order: List<String>,
+        parse: (String) -> T,
+    ): List<T> {
+        val present = types.toMutableSet()
+        val result = mutableListOf<T>()
+        for (name in order) {
+            val type = runCatching { parse(name) }.getOrNull() ?: continue
+            if (present.remove(type)) result += type
+        }
+        result += present.sortedBy { it.ordinal }
+        return result
     }
 
     private fun resolveActive(portfolios: List<PortfolioEntity>, selectedId: Long?): PortfolioEntity? {
@@ -140,7 +237,7 @@ class HomeViewModel(
         val baseCurrency: String,
         val selectedId: Long?,
         val portfolios: List<PortfolioEntity>,
-        val converter: com.cairnlabworks.mywealth.data.repository.CurrencyConverter,
+        val converter: CurrencyConverter,
         val isRefreshing: Boolean,
     )
 }

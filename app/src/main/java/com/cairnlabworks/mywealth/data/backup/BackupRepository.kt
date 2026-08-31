@@ -107,6 +107,7 @@ private fun AssetEntity.toBackup() = BackupAsset(
     lastPriceTimestamp = lastPriceTimestamp,
     manualValue = manualValue,
     notes = notes,
+    position = position,
 )
 
 private fun LiabilityEntity.toBackup() = BackupLiability(
@@ -115,6 +116,7 @@ private fun LiabilityEntity.toBackup() = BackupLiability(
     currency = currency,
     amount = amount,
     notes = notes,
+    position = position,
 )
 
 private fun BackupAsset.toEntity(portfolioId: Long) = AssetEntity(
@@ -129,6 +131,7 @@ private fun BackupAsset.toEntity(portfolioId: Long) = AssetEntity(
     lastPriceTimestamp = lastPriceTimestamp,
     manualValue = manualValue,
     notes = notes,
+    position = position,
 )
 
 private fun BackupLiability.toEntity(portfolioId: Long) = LiabilityEntity(
@@ -138,4 +141,5 @@ private fun BackupLiability.toEntity(portfolioId: Long) = LiabilityEntity(
     currency = currency,
     amount = amount,
     notes = notes,
+    position = position,
 )
