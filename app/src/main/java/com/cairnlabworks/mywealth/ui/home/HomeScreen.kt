@@ -119,7 +119,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = state.activePortfolio?.name ?: "MyWealth",
+                                text = state.activePortfolio?.name ?: "Networthy",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold,
                             )

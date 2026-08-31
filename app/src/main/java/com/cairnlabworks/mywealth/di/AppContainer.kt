@@ -39,7 +39,7 @@ class AppContainer(context: Context) {
             .readTimeout(15, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .header("User-Agent", "MyWealth/1.0 (Android)")
+                    .header("User-Agent", "Networthy/1.0 (Android)")
                     .header("Accept", "application/json")
                     .build()
                 chain.proceed(request)

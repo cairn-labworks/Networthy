@@ -159,7 +159,7 @@ fun SettingsScreen(onClose: () -> Unit) {
             SettingsSectionTitle("Security")
             SwitchRow(
                 title = "App lock",
-                subtitle = "Require fingerprint or device PIN to open MyWealth",
+                subtitle = "Require fingerprint or device PIN to open Networthy",
                 checked = settings.appLockEnabled,
                 onCheckedChange = { enabled ->
                     if (!enabled) {
@@ -203,7 +203,7 @@ fun SettingsScreen(onClose: () -> Unit) {
             HorizontalDivider()
             SettingsSectionTitle("About")
             SettingRow(
-                title = "MyWealth",
+                title = "Networthy",
                 subtitle = "Version ${BuildConfig.VERSION_NAME} · Open source (MIT)",
                 onClick = null,
             )

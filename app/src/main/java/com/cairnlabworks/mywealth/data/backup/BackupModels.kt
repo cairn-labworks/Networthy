@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 /** Serializable snapshot of one or more portfolios for encrypted export/import. */
 data class BackupFile(
     @SerializedName("schema") val schema: Int = CURRENT_SCHEMA,
-    @SerializedName("app") val app: String = "MyWealth",
+    @SerializedName("app") val app: String = "Networthy",
     @SerializedName("exportedAt") val exportedAt: Long,
     @SerializedName("portfolios") val portfolios: List<BackupPortfolio>?,
 ) {

@@ -1,4 +1,4 @@
-# MyWealth
+# Networthy
 
 A private, offline-first Android app for tracking your **net worth** — your assets minus your liabilities — organised into portfolios. Built with Kotlin, Jetpack Compose and Material 3.
 
@@ -7,14 +7,14 @@ A private, offline-first Android app for tracking your **net worth** — your as
 ## Features
 
 - **Assets** — track stocks, mutual funds/ETFs, crypto, gold, cash, bank deposits, real estate, vehicles, bonds and more. Each asset type shows only the fields that make sense for it.
-  - **Stocks / funds / crypto**: enter a ticker symbol, quantity and currency, and MyWealth fetches the latest closing price to compute the holding's value automatically.
+  - **Stocks / funds / crypto**: enter a ticker symbol, quantity and currency, and Networthy fetches the latest closing price to compute the holding's value automatically.
   - **Gold** and other quantity-based assets: enter a quantity and a price per unit.
   - **Cash, property, vehicles, …**: enter a single value.
 - **Liabilities** — track loans, mortgages, credit cards, pending payments and taxes.
 - **Net worth at a glance** — the home screen shows total assets, total liabilities and your net worth, converted into a single base currency. Assets and liabilities are grouped into **collapsible cards per category** (tap to expand for individual items; the collapsed card shows the category total).
 - **Custom ordering** — long-press and drag to reorder category cards, or reorder items within a category (items stay within their own type). Your order is saved.
 - **Portfolios** — create multiple portfolios (e.g. *Personal*, *Family*, *Business*), set a **default** that powers the home screen, and switch between them at any time. Each portfolio has its own net worth.
-- **Multi-currency** — hold assets in any currency; MyWealth converts everything into your chosen base currency using cached exchange rates.
+- **Multi-currency** — hold assets in any currency; Networthy converts everything into your chosen base currency using cached exchange rates.
 - **Security & privacy**
   - The local database is encrypted with **SQLCipher (AES-256)**; the key is generated on-device and stored in the **Android Keystore**.
   - Optional **app lock** with fingerprint or device PIN.
@@ -24,7 +24,7 @@ A private, offline-first Android app for tracking your **net worth** — your as
 
 ## Privacy
 
-MyWealth is **offline-first**. The only network calls it makes are:
+Networthy is **offline-first**. The only network calls it makes are:
 
 1. **Stock/fund/crypto prices** — sends only the ticker symbol to a public finance endpoint.
 2. **Exchange rates** — sends only a base currency code to a public, key-less rates endpoint.
@@ -92,4 +92,4 @@ From the command line:
 
 ## License
 
-Released under the [MIT License](LICENSE). MyWealth is an independent, open-source project and is not affiliated with or endorsed by Google. It uses Google's Material Design system for its UI.
+Released under the [MIT License](LICENSE). Networthy is an independent, open-source project and is not affiliated with or endorsed by Google. It uses Google's Material Design system for its UI.

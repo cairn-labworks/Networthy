@@ -68,7 +68,7 @@ class MainActivity : FragmentActivity() {
     private fun authenticate(onSuccess: () -> Unit) {
         BiometricAuthenticator.authenticate(
             activity = this,
-            title = "Unlock MyWealth",
+            title = "Unlock Networthy",
             subtitle = "Confirm it's you to view your net worth",
             onSuccess = onSuccess,
             onError = { /* Stay locked; the user can retry from the lock screen. */ },

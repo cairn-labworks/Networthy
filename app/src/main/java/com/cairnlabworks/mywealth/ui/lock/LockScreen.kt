@@ -54,7 +54,7 @@ fun LockScreen(onUnlock: () -> Unit) {
                 }
             }
             Text(
-                text = "MyWealth is locked",
+                text = "Networthy is locked",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,

@@ -54,12 +54,12 @@ object BackupCrypto {
     fun decrypt(data: ByteArray, password: CharArray): ByteArray {
         val header = MAGIC.size + 1 + SALT_LENGTH + IV_LENGTH
         if (data.size < header) {
-            throw InvalidBackupException("File is not a valid MyWealth backup.")
+            throw InvalidBackupException("File is not a valid Networthy backup.")
         }
         var offset = 0
         val magic = data.copyOfRange(offset, MAGIC.size); offset += MAGIC.size
         if (!magic.contentEquals(MAGIC)) {
-            throw InvalidBackupException("File is not a valid MyWealth backup.")
+            throw InvalidBackupException("File is not a valid Networthy backup.")
         }
         offset += 1 // version (only v1 exists today)
         val salt = data.copyOfRange(offset, offset + SALT_LENGTH); offset += SALT_LENGTH
