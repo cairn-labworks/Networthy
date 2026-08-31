@@ -19,6 +19,7 @@ data class AppSettings(
     val dynamicColor: Boolean = true,
     val baseCurrency: String = CurrencyUtil.deviceCurrencyCode(),
     val appLockEnabled: Boolean = false,
+    val hideBalances: Boolean = false,
     val selectedPortfolioId: Long? = null,
 )
 
@@ -34,6 +35,7 @@ class SettingsRepository(context: Context) {
             dynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: true,
             baseCurrency = prefs[KEY_BASE_CURRENCY] ?: CurrencyUtil.deviceCurrencyCode(),
             appLockEnabled = prefs[KEY_APP_LOCK] ?: false,
+            hideBalances = prefs[KEY_HIDE_BALANCES] ?: false,
             selectedPortfolioId = prefs[KEY_SELECTED_PORTFOLIO]?.takeIf { it > 0 },
         )
     }
@@ -52,6 +54,10 @@ class SettingsRepository(context: Context) {
 
     suspend fun setAppLockEnabled(enabled: Boolean) {
         dataStore.edit { it[KEY_APP_LOCK] = enabled }
+    }
+
+    suspend fun setHideBalances(hidden: Boolean) {
+        dataStore.edit { it[KEY_HIDE_BALANCES] = hidden }
     }
 
     suspend fun setSelectedPortfolioId(id: Long?) {
@@ -81,6 +87,7 @@ class SettingsRepository(context: Context) {
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val KEY_BASE_CURRENCY = stringPreferencesKey("base_currency")
         val KEY_APP_LOCK = booleanPreferencesKey("app_lock_enabled")
+        val KEY_HIDE_BALANCES = booleanPreferencesKey("hide_balances")
         val KEY_SELECTED_PORTFOLIO = longPreferencesKey("selected_portfolio_id")
     }
 }

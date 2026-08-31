@@ -89,6 +89,10 @@ dependencies {
     // Security & auth
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.biometric)
+    // Force a modern fragment version so the Activity Result API (SAF pickers)
+    // works with FragmentActivity; biometric:1.1.0 otherwise pins fragment 1.2.5,
+    // which crashes with "Can only use lower 16 bits for requestCode".
+    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.datastore.preferences)
 
     // Networking (stock closing prices + FX rates)

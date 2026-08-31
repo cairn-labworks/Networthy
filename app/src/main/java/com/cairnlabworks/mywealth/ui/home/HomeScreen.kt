@@ -28,6 +28,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,6 +55,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -155,6 +158,20 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.toggleHideBalances() }) {
+                        Icon(
+                            imageVector = if (state.hideBalances) {
+                                Icons.Filled.VisibilityOff
+                            } else {
+                                Icons.Filled.Visibility
+                            },
+                            contentDescription = if (state.hideBalances) {
+                                "Show balances"
+                            } else {
+                                "Hide balances"
+                            },
+                        )
+                    }
                     IconButton(onClick = { viewModel.refresh() }, enabled = !state.isRefreshing) {
                         if (state.isRefreshing) {
                             CircularProgressIndicator(
@@ -287,12 +304,16 @@ private fun HomeContent(
             ),
     ) {
         Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            NetWorthCard(summary = state.summary)
+            NetWorthCard(summary = state.summary, hideBalances = state.hideBalances)
         }
 
         SectionHeader(
             title = "Assets",
-            trailing = CurrencyUtil.format(state.summary.totalAssets, state.baseCurrency),
+            trailing = if (state.hideBalances) {
+                CurrencyUtil.MASK_SHORT
+            } else {
+                CurrencyUtil.format(state.summary.totalAssets, state.baseCurrency)
+            },
         )
         if (!state.hasAnyAssets) {
             EmptyState(
@@ -314,6 +335,7 @@ private fun HomeContent(
                     dragHandle = handle,
                     expandedKey = "asset-${group.type.name}",
                     expandedMap = expanded,
+                    hideBalances = state.hideBalances,
                     onOpenAsset = onOpenAsset,
                     onItemsReordered = onAssetItemsReordered,
                 )
@@ -324,7 +346,11 @@ private fun HomeContent(
 
         SectionHeader(
             title = "Liabilities",
-            trailing = CurrencyUtil.format(state.summary.totalLiabilities, state.baseCurrency),
+            trailing = if (state.hideBalances) {
+                CurrencyUtil.MASK_SHORT
+            } else {
+                CurrencyUtil.format(state.summary.totalLiabilities, state.baseCurrency)
+            },
         )
         if (!state.hasAnyLiabilities) {
             EmptyState(
@@ -346,6 +372,7 @@ private fun HomeContent(
                     dragHandle = handle,
                     expandedKey = "liability-${group.type.name}",
                     expandedMap = expanded,
+                    hideBalances = state.hideBalances,
                     onOpenLiability = onOpenLiability,
                     onItemsReordered = onLiabilityItemsReordered,
                 )
@@ -363,6 +390,7 @@ private fun AssetCategoryCard(
     dragHandle: Modifier,
     expandedKey: String,
     expandedMap: MutableMap<String, Boolean>,
+    hideBalances: Boolean,
     onOpenAsset: (AssetEntity) -> Unit,
     onItemsReordered: (List<AssetEntity>) -> Unit,
 ) {
@@ -371,11 +399,15 @@ private fun AssetCategoryCard(
         icon = group.type.icon(),
         title = group.type.displayName,
         count = group.items.size,
-        totalText = CurrencyUtil.format(group.total, group.baseCurrency),
+        totalText = if (hideBalances) {
+            CurrencyUtil.MASK_SHORT
+        } else {
+            CurrencyUtil.format(group.total, group.baseCurrency)
+        },
         isExpanded = isExpanded,
         isDragging = isDragging,
         dragHandle = dragHandle,
-        onToggle = { expandedMap[expandedKey] = !isExpanded },
+        onToggle = { expandedMap[expandedKey] = !(expandedMap[expandedKey] == true) },
     ) {
         DragReorderColumn(
             items = group.items,
@@ -385,7 +417,11 @@ private fun AssetCategoryCard(
             HoldingItemRow(
                 title = asset.name,
                 subtitle = assetSubtitle(asset, group.baseCurrency),
-                amount = CurrencyUtil.format(asset.value, asset.currency),
+                amount = if (hideBalances) {
+                    CurrencyUtil.MASK_SHORT
+                } else {
+                    CurrencyUtil.format(asset.value, asset.currency)
+                },
                 isDragging = itemDragging,
                 dragHandle = itemHandle,
                 onOpen = { onOpenAsset(asset) },
@@ -401,6 +437,7 @@ private fun LiabilityCategoryCard(
     dragHandle: Modifier,
     expandedKey: String,
     expandedMap: MutableMap<String, Boolean>,
+    hideBalances: Boolean,
     onOpenLiability: (LiabilityEntity) -> Unit,
     onItemsReordered: (List<LiabilityEntity>) -> Unit,
 ) {
@@ -409,11 +446,15 @@ private fun LiabilityCategoryCard(
         icon = group.type.icon(),
         title = group.type.displayName,
         count = group.items.size,
-        totalText = CurrencyUtil.format(group.total, group.baseCurrency),
+        totalText = if (hideBalances) {
+            CurrencyUtil.MASK_SHORT
+        } else {
+            CurrencyUtil.format(group.total, group.baseCurrency)
+        },
         isExpanded = isExpanded,
         isDragging = isDragging,
         dragHandle = dragHandle,
-        onToggle = { expandedMap[expandedKey] = !isExpanded },
+        onToggle = { expandedMap[expandedKey] = !(expandedMap[expandedKey] == true) },
     ) {
         DragReorderColumn(
             items = group.items,
@@ -423,7 +464,11 @@ private fun LiabilityCategoryCard(
             HoldingItemRow(
                 title = liability.name,
                 subtitle = currencyNote(liability.currency, group.baseCurrency),
-                amount = CurrencyUtil.format(liability.value, liability.currency),
+                amount = if (hideBalances) {
+                    CurrencyUtil.MASK_SHORT
+                } else {
+                    CurrencyUtil.format(liability.value, liability.currency)
+                },
                 isDragging = itemDragging,
                 dragHandle = itemHandle,
                 onOpen = { onOpenLiability(liability) },
@@ -445,6 +490,7 @@ private fun CategoryCardShell(
     expandedContent: @Composable () -> Unit,
 ) {
     val elevation by animateDpAsState(if (isDragging) 8.dp else 1.dp, label = "cardElevation")
+    val latestToggle by rememberUpdatedState(onToggle)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -457,7 +503,7 @@ private fun CategoryCardShell(
                     // Long-press anywhere on the header to reorder the category.
                     .then(dragHandle)
                     // A short tap expands / collapses the category.
-                    .pointerInput(title) { detectTapGestures { onToggle() } }
+                    .pointerInput(Unit) { detectTapGestures { latestToggle() } }
                     .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

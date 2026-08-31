@@ -64,6 +64,12 @@ object CurrencyUtil {
         return "$sign$symbol${numberFormat.format(kotlin.math.abs(rounded))}"
     }
 
+    /** A masked placeholder for a hidden balance, e.g. "₹ ••••" or "US $ ••••". */
+    fun masked(code: String): String = "${symbol(code)} ••••"
+
+    /** Short masked placeholder for compact spots (rows, tiles): "••••". */
+    const val MASK_SHORT: String = "••••"
+
     /** Compact form for large headline figures, e.g. "US $1.2M". */
     fun formatCompact(amount: Double, code: String): String {
         val symbol = symbol(code)

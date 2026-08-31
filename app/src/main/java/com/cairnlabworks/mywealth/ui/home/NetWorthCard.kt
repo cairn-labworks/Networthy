@@ -32,6 +32,7 @@ import com.cairnlabworks.mywealth.util.CurrencyUtil
 @Composable
 fun NetWorthCard(
     summary: NetWorthSummary,
+    hideBalances: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -61,7 +62,11 @@ fun NetWorthCard(
             }
             Spacer(Modifier.height(6.dp))
             Text(
-                text = CurrencyUtil.format(summary.netWorth, summary.baseCurrency),
+                text = if (hideBalances) {
+                    CurrencyUtil.masked(summary.baseCurrency)
+                } else {
+                    CurrencyUtil.format(summary.netWorth, summary.baseCurrency)
+                },
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -73,14 +78,22 @@ fun NetWorthCard(
                     icon = Icons.AutoMirrored.Filled.TrendingUp,
                     accent = FinanceTheme.colors.positive,
                     label = "Assets",
-                    amount = CurrencyUtil.format(summary.totalAssets, summary.baseCurrency),
+                    amount = if (hideBalances) {
+                        CurrencyUtil.MASK_SHORT
+                    } else {
+                        CurrencyUtil.format(summary.totalAssets, summary.baseCurrency)
+                    },
                 )
                 MetricTile(
                     modifier = Modifier.weight(1f),
                     icon = Icons.AutoMirrored.Filled.TrendingDown,
                     accent = FinanceTheme.colors.negative,
                     label = "Liabilities",
-                    amount = CurrencyUtil.format(summary.totalLiabilities, summary.baseCurrency),
+                    amount = if (hideBalances) {
+                        CurrencyUtil.MASK_SHORT
+                    } else {
+                        CurrencyUtil.format(summary.totalLiabilities, summary.baseCurrency)
+                    },
                 )
             }
         }

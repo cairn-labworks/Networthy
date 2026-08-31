@@ -36,6 +36,7 @@ data class HomeUiState(
     val assetGroups: List<AssetCategoryGroup> = emptyList(),
     val liabilityGroups: List<LiabilityCategoryGroup> = emptyList(),
     val isRefreshing: Boolean = false,
+    val hideBalances: Boolean = false,
 ) {
     val hasAnyAssets: Boolean get() = assetGroups.isNotEmpty()
     val hasAnyLiabilities: Boolean get() = liabilityGroups.isNotEmpty()
@@ -61,7 +62,14 @@ class HomeViewModel(
         fxRepository.converter,
         refreshing,
     ) { settings, portfolios, converter, isRefreshing ->
-        CombinedBase(settings.baseCurrency, settings.selectedPortfolioId, portfolios, converter, isRefreshing)
+        CombinedBase(
+            settings.baseCurrency,
+            settings.selectedPortfolioId,
+            portfolios,
+            converter,
+            isRefreshing,
+            settings.hideBalances,
+        )
     }.flatMapLatest { base ->
         val active = resolveActive(base.portfolios, base.selectedId)
         if (active == null) {
@@ -73,6 +81,7 @@ class HomeViewModel(
                     baseCurrency = base.baseCurrency,
                     summary = NetWorthSummary.empty(base.baseCurrency),
                     isRefreshing = base.isRefreshing,
+                    hideBalances = base.hideBalances,
                 ),
             )
         } else {
@@ -99,6 +108,7 @@ class HomeViewModel(
                         liabilities, liabilityOrder, base.converter, base.baseCurrency,
                     ),
                     isRefreshing = base.isRefreshing,
+                    hideBalances = base.hideBalances,
                 )
             }
         }
@@ -119,6 +129,12 @@ class HomeViewModel(
 
     fun selectPortfolio(id: Long) {
         viewModelScope.launch { settingsRepository.setSelectedPortfolioId(id) }
+    }
+
+    fun toggleHideBalances() {
+        viewModelScope.launch {
+            settingsRepository.setHideBalances(!uiState.value.hideBalances)
+        }
     }
 
     fun refresh() {
@@ -239,5 +255,6 @@ class HomeViewModel(
         val portfolios: List<PortfolioEntity>,
         val converter: CurrencyConverter,
         val isRefreshing: Boolean,
+        val hideBalances: Boolean,
     )
 }
