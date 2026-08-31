@@ -19,6 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +48,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -100,7 +106,10 @@ fun SettingsScreen(onClose: () -> Unit) {
                 runCatching {
                     val bytes = viewModel.buildExport(pending.first, pending.second.toCharArray())
                     withContext(Dispatchers.IO) {
-                        context.contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
+                        // "wt" truncates any existing content so an overwritten
+                        // file can't keep stale trailing bytes that would corrupt it.
+                        context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) }
+                            ?: error("Couldn't open the destination file")
                     }
                 }.onSuccess {
                     viewModel.postMessage("Exported ${pending.first.size} portfolio(s)")
@@ -244,7 +253,7 @@ fun SettingsScreen(onClose: () -> Unit) {
             onConfirm = { ids, password ->
                 pendingExport = ids to password
                 showExportDialog = false
-                createDocLauncher.launch("mywealth-backup.mywealth")
+                createDocLauncher.launch("networthy-backup.networthy")
             },
             onDismiss = { showExportDialog = false },
         )
@@ -284,6 +293,50 @@ private fun SettingsSectionTitle(title: String) {
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 4.dp),
+    )
+}
+
+/**
+ * A password entry field with a show/hide toggle. Uses the password keyboard so
+ * the IME does not auto-capitalize or auto-correct the input, which would
+ * otherwise silently change the password between export and import.
+ */
+@Composable
+private fun PasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    visible: Boolean,
+    onToggleVisibility: () -> Unit,
+    isError: Boolean = false,
+    supportingText: String? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = true,
+        isError = isError,
+        supportingText = supportingText?.let { { Text(it) } },
+        visualTransformation = if (visible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            autoCorrectEnabled = false,
+            capitalization = KeyboardCapitalization.None,
+        ),
+        trailingIcon = {
+            IconButton(onClick = onToggleVisibility) {
+                Icon(
+                    imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    contentDescription = if (visible) "Hide password" else "Show password",
+                )
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -384,7 +437,11 @@ private fun ExportDialog(
         }
     }
     var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var visible by remember { mutableStateOf(false) }
     val chosen = portfolios.filter { selected[it.id] == true }.map { it.id }
+    val mismatch = confirm.isNotEmpty() && password != confirm
+    val canExport = chosen.isNotEmpty() && password.length >= 4 && password == confirm
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -392,7 +449,7 @@ private fun ExportDialog(
         text = {
             Column {
                 Text(
-                    "Choose portfolios and set a password. You'll need this password to import the file again.",
+                    "Choose portfolios and set a password. You'll need this exact password to import the file again.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.height(12.dp))
@@ -412,20 +469,35 @@ private fun ExportDialog(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
+                PasswordField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Password",
+                    visible = visible,
+                    onToggleVisibility = { visible = !visible },
+                    supportingText = if (password.isNotEmpty() && password.length < 4) {
+                        "Use at least 4 characters"
+                    } else {
+                        null
+                    },
+                    isError = password.isNotEmpty() && password.length < 4,
+                )
+                Spacer(Modifier.height(8.dp))
+                PasswordField(
+                    value = confirm,
+                    onValueChange = { confirm = it },
+                    label = "Confirm password",
+                    visible = visible,
+                    onToggleVisibility = { visible = !visible },
+                    isError = mismatch,
+                    supportingText = if (mismatch) "Passwords don't match" else null,
                 )
             }
         },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(chosen, password) },
-                enabled = chosen.isNotEmpty() && password.length >= 4,
+                enabled = canExport,
             ) { Text("Export") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
@@ -438,6 +510,7 @@ private fun ImportPasswordDialog(
     onDismiss: () -> Unit,
 ) {
     var password by remember { mutableStateOf("") }
+    var visible by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Import backup") },
@@ -448,13 +521,12 @@ private fun ImportPasswordDialog(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
+                PasswordField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Password",
+                    visible = visible,
+                    onToggleVisibility = { visible = !visible },
                 )
             }
         },
