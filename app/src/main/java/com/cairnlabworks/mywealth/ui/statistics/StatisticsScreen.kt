@@ -1,6 +1,7 @@
 package com.cairnlabworks.mywealth.ui.statistics
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -118,67 +120,85 @@ fun StatisticsScreen() {
             return@Scaffold
         }
 
-        Column(
+        // Each chart owns a selection; tapping empty space anywhere clears them all.
+        var overviewSel by remember { mutableStateOf<Int?>(null) }
+        var assetsSel by remember { mutableStateOf<Int?>(null) }
+        var liabilitiesSel by remember { mutableStateOf<Int?>(null) }
+        val clearAll = {
+            overviewSel = null
+            assetsSel = null
+            liabilitiesSel = null
+        }
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    top = padding.calculateTopPadding() + 8.dp,
-                    bottom = padding.calculateBottomPadding() + 24.dp,
-                    start = 16.dp,
-                    end = 16.dp,
-                ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(padding)
+                .pointerInput(Unit) { detectTapGestures { clearAll() } },
         ) {
-            // 1) Overview: assets vs liabilities.
-            val overviewSlices = buildList {
-                if (state.totalAssets > 0) {
-                    add(PieSlice("Assets", state.totalAssets, FinanceTheme.colors.positive))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 8.dp, bottom = 24.dp, start = 16.dp, end = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // 1) Overview: assets vs liabilities.
+                val overviewSlices = buildList {
+                    if (state.totalAssets > 0) {
+                        add(PieSlice("Assets", state.totalAssets, FinanceTheme.colors.positive))
+                    }
+                    if (state.totalLiabilities > 0) {
+                        add(PieSlice("Liabilities", state.totalLiabilities, FinanceTheme.colors.negative))
+                    }
                 }
-                if (state.totalLiabilities > 0) {
-                    add(PieSlice("Liabilities", state.totalLiabilities, FinanceTheme.colors.negative))
-                }
-            }
-            ChartCard(
-                title = "Overview",
-                subtitle = "Assets vs. liabilities",
-                slices = overviewSlices,
-                defaultCenterLabel = "Net worth",
-                defaultCenterValue = state.netWorth,
-                baseCurrency = state.baseCurrency,
-                hideBalances = state.hideBalances,
-            )
-
-            // 2) Assets by type.
-            val assetSlices = state.assetsByType.mapIndexed { i, t ->
-                PieSlice(t.label, t.amount, ChartColors.at(i))
-            }
-            if (assetSlices.isNotEmpty()) {
                 ChartCard(
-                    title = "Assets",
-                    subtitle = "By type",
-                    slices = assetSlices,
-                    defaultCenterLabel = "Assets",
-                    defaultCenterValue = state.totalAssets,
+                    title = "Overview",
+                    subtitle = "Assets vs. liabilities",
+                    slices = overviewSlices,
+                    defaultCenterLabel = "Net worth",
+                    defaultCenterValue = state.netWorth,
                     baseCurrency = state.baseCurrency,
                     hideBalances = state.hideBalances,
+                    selectedIndex = overviewSel,
+                    onSelectedChange = { overviewSel = it },
                 )
-            }
 
-            // 3) Liabilities by type.
-            val liabilitySlices = state.liabilitiesByType.mapIndexed { i, t ->
-                PieSlice(t.label, t.amount, ChartColors.at(i))
-            }
-            if (liabilitySlices.isNotEmpty()) {
-                ChartCard(
-                    title = "Liabilities",
-                    subtitle = "By type",
-                    slices = liabilitySlices,
-                    defaultCenterLabel = "Liabilities",
-                    defaultCenterValue = state.totalLiabilities,
-                    baseCurrency = state.baseCurrency,
-                    hideBalances = state.hideBalances,
-                )
+                // 2) Assets by type.
+                val assetSlices = state.assetsByType.mapIndexed { i, t ->
+                    PieSlice(t.label, t.amount, ChartColors.at(i))
+                }
+                if (assetSlices.isNotEmpty()) {
+                    ChartCard(
+                        title = "Assets",
+                        subtitle = "By type",
+                        slices = assetSlices,
+                        defaultCenterLabel = "Assets",
+                        defaultCenterValue = state.totalAssets,
+                        baseCurrency = state.baseCurrency,
+                        hideBalances = state.hideBalances,
+                        selectedIndex = assetsSel,
+                        onSelectedChange = { assetsSel = it },
+                    )
+                }
+
+                // 3) Liabilities by type.
+                val liabilitySlices = state.liabilitiesByType.mapIndexed { i, t ->
+                    PieSlice(t.label, t.amount, ChartColors.at(i))
+                }
+                if (liabilitySlices.isNotEmpty()) {
+                    ChartCard(
+                        title = "Liabilities",
+                        subtitle = "By type",
+                        slices = liabilitySlices,
+                        defaultCenterLabel = "Liabilities",
+                        defaultCenterValue = state.totalLiabilities,
+                        baseCurrency = state.baseCurrency,
+                        hideBalances = state.hideBalances,
+                        selectedIndex = liabilitiesSel,
+                        onSelectedChange = { liabilitiesSel = it },
+                    )
+                }
             }
         }
     }
@@ -193,8 +213,11 @@ private fun ChartCard(
     defaultCenterValue: Double,
     baseCurrency: String,
     hideBalances: Boolean,
+    selectedIndex: Int?,
+    onSelectedChange: (Int?) -> Unit,
 ) {
-    var selected by remember(slices) { mutableStateOf<Int?>(null) }
+    // Guard against a stale index if the underlying data shrinks.
+    val selected = selectedIndex?.takeIf { it in slices.indices }
 
     fun money(amount: Double): String =
         if (hideBalances) CurrencyUtil.masked(baseCurrency) else CurrencyUtil.format(amount, baseCurrency)
@@ -217,7 +240,7 @@ private fun ChartCard(
                 DonutChart(
                     slices = slices,
                     selectedIndex = selected,
-                    onSelect = { selected = it },
+                    onSelect = { onSelectedChange(it) },
                 ) {
                     val sel = selected?.let { slices.getOrNull(it) }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -254,7 +277,7 @@ private fun ChartCard(
                     label = slice.label,
                     valueText = money(slice.value),
                     highlighted = selected == index,
-                    onClick = { selected = if (selected == index) null else index },
+                    onClick = { onSelectedChange(if (selected == index) null else index) },
                 )
             }
         }
