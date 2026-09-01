@@ -22,6 +22,7 @@ import com.cairnlabworks.mywealth.ui.home.HomeScreen
 import com.cairnlabworks.mywealth.ui.liability.LiabilityEditScreen
 import com.cairnlabworks.mywealth.ui.portfolio.PortfolioScreen
 import com.cairnlabworks.mywealth.ui.settings.SettingsScreen
+import com.cairnlabworks.mywealth.ui.statistics.StatisticsScreen
 
 @Composable
 fun MyWealthApp() {
@@ -82,7 +83,12 @@ fun MyWealthApp() {
                             restoreState = true
                         }
                     },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                 )
+            }
+
+            composable(Routes.STATISTICS) {
+                StatisticsScreen()
             }
 
             composable(Routes.PORTFOLIOS) {

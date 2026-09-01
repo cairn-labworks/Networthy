@@ -8,6 +8,7 @@ import com.cairnlabworks.mywealth.ui.home.HomeViewModel
 import com.cairnlabworks.mywealth.ui.liability.LiabilityEditViewModel
 import com.cairnlabworks.mywealth.ui.portfolio.PortfolioListViewModel
 import com.cairnlabworks.mywealth.ui.settings.SettingsViewModel
+import com.cairnlabworks.mywealth.ui.statistics.StatisticsViewModel
 
 /**
  * Central place that builds every [androidx.lifecycle.ViewModel] from the
@@ -35,6 +36,18 @@ object ViewModelFactories {
                 liabilityRepository = container.liabilityRepository,
                 fxRepository = container.fxRepository,
                 settingsRepository = container.settingsRepository,
+            )
+        }
+    }
+
+    fun statistics(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
+        initializer {
+            StatisticsViewModel(
+                settingsRepository = container.settingsRepository,
+                portfolioRepository = container.portfolioRepository,
+                assetRepository = container.assetRepository,
+                liabilityRepository = container.liabilityRepository,
+                fxRepository = container.fxRepository,
             )
         }
     }

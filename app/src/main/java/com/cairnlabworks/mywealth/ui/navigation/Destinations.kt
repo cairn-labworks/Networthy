@@ -3,14 +3,15 @@ package com.cairnlabworks.mywealth.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object Routes {
     const val HOME = "home"
+    const val STATISTICS = "statistics"
     const val PORTFOLIOS = "portfolios"
     const val SETTINGS = "settings"
 
@@ -33,11 +34,11 @@ enum class TopLevelDestination(
     val unselectedIcon: ImageVector,
 ) {
     HOME(Routes.HOME, "Home", Icons.Filled.Home, Icons.Outlined.Home),
+    STATISTICS(Routes.STATISTICS, "Statistics", Icons.Filled.PieChart, Icons.Outlined.PieChart),
     PORTFOLIOS(
         Routes.PORTFOLIOS,
         "Portfolios",
         Icons.Filled.AccountBalanceWallet,
         Icons.Outlined.AccountBalanceWallet,
     ),
-    SETTINGS(Routes.SETTINGS, "Settings", Icons.Filled.Settings, Icons.Outlined.Settings),
 }

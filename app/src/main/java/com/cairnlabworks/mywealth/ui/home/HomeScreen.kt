@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -84,6 +85,7 @@ fun HomeScreen(
     onOpenAssetEditor: (portfolioId: Long, assetId: Long) -> Unit,
     onOpenLiabilityEditor: (portfolioId: Long, liabilityId: Long) -> Unit,
     onManagePortfolios: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val container = rememberAppContainer()
     val viewModel: HomeViewModel = viewModel(factory = ViewModelFactories.home(container))
@@ -181,6 +183,9 @@ fun HomeScreen(
                         } else {
                             Icon(Icons.Filled.Refresh, contentDescription = "Refresh prices")
                         }
+                    }
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
                 },
             )
