@@ -1,0 +1,97 @@
+import 'package:flutter/widgets.dart';
+import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
+
+import '../data/backup/backup_repository.dart';
+import '../data/local/app_database.dart';
+import '../data/local/dao/asset_dao.dart';
+import '../data/local/dao/fx_rate_dao.dart';
+import '../data/local/dao/liability_dao.dart';
+import '../data/local/dao/portfolio_dao.dart';
+import '../data/remote/api_client.dart';
+import '../data/remote/fx/fx_api.dart';
+import '../data/remote/stock/chart_response.dart';
+import '../data/remote/stock/stock_price_service.dart';
+import '../data/repository/asset_repository.dart';
+import '../data/repository/fx_repository.dart';
+import '../data/repository/liability_repository.dart';
+import '../data/repository/portfolio_repository.dart';
+import '../data/repository/settings_repository.dart';
+import '../data/security/database_key_provider.dart';
+
+/// Lightweight manual dependency container holding the encrypted database and
+/// every repository. A single instance is created at startup and handed to the
+/// widget tree through [AppScope].
+class AppContainer {
+  AppContainer._({
+    required this.database,
+    required this.settingsRepository,
+    required this.portfolioRepository,
+    required this.assetRepository,
+    required this.liabilityRepository,
+    required this.fxRepository,
+    required this.backupRepository,
+  });
+
+  static Future<AppContainer> create() async {
+    final DatabaseKeyProvider keyProvider = const DatabaseKeyProvider();
+    final String passphrase = await keyProvider.getOrCreatePassphrase();
+    final String path = p.join(
+      await getDatabasesPath(),
+      AppDatabase.databaseName,
+    );
+    final AppDatabase database = await AppDatabase.open(
+      path: path,
+      password: passphrase,
+    );
+
+    final ApiClient client = ApiClient();
+    final StockPriceService stockPriceService = StockPriceService(
+      StockApi(client: client),
+    );
+
+    final PortfolioDao portfolioDao = PortfolioDao(database);
+    final AssetDao assetDao = AssetDao(database);
+    final LiabilityDao liabilityDao = LiabilityDao(database);
+    final FxRateDao fxRateDao = FxRateDao(database);
+
+    return AppContainer._(
+      database: database,
+      settingsRepository: SettingsRepository(
+        await SharedPreferences.getInstance(),
+      ),
+      portfolioRepository: PortfolioRepository(portfolioDao),
+      assetRepository: AssetRepository(assetDao, stockPriceService),
+      liabilityRepository: LiabilityRepository(liabilityDao),
+      fxRepository: FxRepository(fxRateDao, FxApi(client: client)),
+      backupRepository: BackupRepository(portfolioDao, assetDao, liabilityDao),
+    );
+  }
+
+  final AppDatabase database;
+  final SettingsRepository settingsRepository;
+  final PortfolioRepository portfolioRepository;
+  final AssetRepository assetRepository;
+  final LiabilityRepository liabilityRepository;
+  final FxRepository fxRepository;
+  final BackupRepository backupRepository;
+}
+
+/// Makes the [AppContainer] available to the whole widget tree.
+class AppScope extends InheritedWidget {
+  const AppScope({required this.container, required super.child, super.key});
+
+  final AppContainer container;
+
+  static AppContainer of(BuildContext context) {
+    final AppScope? scope = context
+        .dependOnInheritedWidgetOfExactType<AppScope>();
+    assert(scope != null, 'AppScope was not found in the widget tree');
+    return scope!.container;
+  }
+
+  @override
+  bool updateShouldNotify(AppScope oldWidget) =>
+      container != oldWidget.container;
+}

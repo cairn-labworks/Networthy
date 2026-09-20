@@ -1,0 +1,47 @@
+name: networthy
+description: "Private, offline-first net worth tracker with on-device encryption."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Encrypted local database (SQLCipher), mirroring the Android app's storage.
+  sqflite_sqlcipher: ^3.4.1
+  # Keystore / Keychain backed storage for the database passphrase.
+  flutter_secure_storage: ^11.2.0
+  # Key/value settings, the analogue of Jetpack DataStore.
+  shared_preferences: ^2.5.5
+  # Biometric / device-credential app lock.
+  local_auth: ^3.0.2
+  # Platform message customisation for the app-lock prompt (title/subtitle).
+  local_auth_android: ^2.2.0
+  local_auth_darwin: ^2.0.4
+  # Material You colors on Android 12+ (platform palette plugin).
+  dynamic_color: ^2.1.0
+  # Tonal palette -> ColorScheme mapping for the wallpaper palette.
+  material_color_utilities: ^0.13.0
+  # Currency metadata and number grouping.
+  intl: ^0.20.2
+  # Yahoo quotes and exchange-rate lookups.
+  http: ^1.6.0
+  # PBKDF2-HMAC-SHA256 + AES-256-GCM for the encrypted backup format.
+  pointycastle: ^4.0.0
+  # Picking an import file and choosing an export destination.
+  file_picker: ^13.1.0
+  path: ^1.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # Pure-Dart tests run with `dart test`, so they do not need the Flutter binding.
+  test: ^1.26.0
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,161 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:networthy/data/remote/fx/fx_api.dart';
+import 'package:networthy/data/remote/stock/chart_response.dart';
+import 'package:networthy/data/remote/stock/stock_price_service.dart';
+import 'package:networthy/util/result.dart';
+import 'package:test/test.dart';
+
+StockPriceService serviceReturning(
+  String body, {
+  int status = 200,
+  void Function(Uri uri)? onRequest,
+}) => StockPriceService(
+  StockApi(
+    client: MockClient((http.Request request) async {
+      onRequest?.call(request.url);
+      return http.Response(body, status);
+    }),
+  ),
+);
+
+String metaBody(Map<String, Object?> meta) => jsonEncode(<String, Object?>{
+  'chart': <String, Object?>{
+    'result': <Object?>[
+      <String, Object?>{'meta': meta},
+    ],
+    'error': null,
+  },
+});
+
+void main() {
+  group('StockPriceService', () {
+    test('rejects an empty symbol without calling the network', () async {
+      bool called = false;
+      final StockPriceService service = serviceReturning(
+        '{}',
+        onRequest: (Uri _) => called = true,
+      );
+      final Result<StockQuote> result = await service.fetchQuote('   ');
+      expect(result.isFailure, isTrue);
+      expect(result.errorMessage, 'Symbol is empty');
+      expect(called, isFalse);
+    });
+
+    test(
+      'uppercases and trims the symbol in the request and the quote',
+      () async {
+        Uri? seen;
+        final StockPriceService service = serviceReturning(
+          metaBody(<String, Object?>{
+            'regularMarketPrice': 190.25,
+            'currency': 'USD',
+          }),
+          onRequest: (Uri uri) => seen = uri,
+        );
+        final Result<StockQuote> result = await service.fetchQuote(' aapl ');
+        expect(seen.toString(), contains('/v8/finance/chart/AAPL'));
+        expect(seen.toString(), contains('range=1d'));
+        expect(result.value.symbol, 'AAPL');
+        expect(result.value.price, 190.25);
+        expect(result.value.currency, 'USD');
+      },
+    );
+
+    test('falls back to previousClose then chartPreviousClose', () async {
+      final Result<StockQuote> previous = await serviceReturning(
+        metaBody(<String, Object?>{'previousClose': 10.0}),
+      ).fetchQuote('X');
+      expect(previous.value.price, 10.0);
+
+      final Result<StockQuote> chart = await serviceReturning(
+        metaBody(<String, Object?>{'chartPreviousClose': 7.5}),
+      ).fetchQuote('X');
+      expect(chart.value.price, 7.5);
+    });
+
+    test('surfaces the Yahoo error description from an error body', () async {
+      final Result<StockQuote> result = await serviceReturning(
+        jsonEncode(<String, Object?>{
+          'chart': <String, Object?>{
+            'result': null,
+            'error': <String, Object?>{
+              'code': 'Not Found',
+              'description': 'No data found, symbol may be delisted',
+            },
+          },
+        }),
+        status: 404,
+      ).fetchQuote('NOPE');
+      expect(result.errorMessage, 'No data found, symbol may be delisted');
+    });
+
+    test('reports missing data and missing prices separately', () async {
+      final Result<StockQuote> noResult = await serviceReturning(
+        jsonEncode(<String, Object?>{
+          'chart': <String, Object?>{'result': <Object?>[]},
+        }),
+      ).fetchQuote('abc');
+      expect(noResult.errorMessage, 'No data returned for ABC');
+
+      final Result<StockQuote> noPrice = await serviceReturning(
+        metaBody(<String, Object?>{'currency': 'USD'}),
+      ).fetchQuote('abc');
+      expect(noPrice.errorMessage, 'No price available for ABC');
+    });
+
+    test(
+      'a non-JSON body becomes a failure rather than an exception',
+      () async {
+        final Result<StockQuote> result = await serviceReturning(
+          '<html>rate limited</html>',
+          status: 429,
+        ).fetchQuote('AAPL');
+        expect(result.isFailure, isTrue);
+        expect(result.errorMessage, contains('429'));
+      },
+    );
+  });
+
+  group('FxApi', () {
+    test('parses rates and the update timestamp', () async {
+      Uri? seen;
+      final FxApi api = FxApi(
+        client: MockClient((http.Request request) async {
+          seen = request.url;
+          return http.Response(
+            jsonEncode(<String, Object?>{
+              'result': 'success',
+              'base_code': 'EUR',
+              'time_last_update_unix': 1700000000,
+              'rates': <String, Object?>{'EUR': 1, 'USD': 1.09},
+            }),
+            200,
+          );
+        }),
+      );
+
+      final FxResponse response = await api.getLatest('EUR');
+      expect(seen.toString(), 'https://open.er-api.com/v6/latest/EUR');
+      expect(response.result, 'success');
+      expect(response.baseCode, 'EUR');
+      expect(response.rates!['USD'], 1.09);
+      expect(response.rates!['EUR'], 1.0);
+      expect(response.timeLastUpdateUnix, 1700000000);
+    });
+
+    test('defaults to USD and throws on a failed status', () async {
+      Uri? seen;
+      final FxApi api = FxApi(
+        client: MockClient((http.Request request) async {
+          seen = request.url;
+          return http.Response('nope', 503);
+        }),
+      );
+      await expectLater(api.getLatest(), throwsA(isA<http.ClientException>()));
+      expect(seen.toString(), endsWith('/v6/latest/USD'));
+    });
+  });
+}

@@ -1,6 +1,6 @@
 # Networthy
 
-A private, offline-first Android app for tracking your **net worth** — your assets minus your liabilities — organised into portfolios. Built with Kotlin, Jetpack Compose and Material 3.
+A private, offline-first app for tracking your **net worth** — your assets minus your liabilities — organised into portfolios. Built with Flutter and Material 3, for **Android and iOS**.
 
 > Your financial data is stored **encrypted on your device** and never leaves it, except when you deliberately export an encrypted backup.
 
@@ -14,13 +14,15 @@ A private, offline-first Android app for tracking your **net worth** — your as
 - **Net worth at a glance** — the home screen shows total assets, total liabilities and your net worth, converted into a single base currency. Assets and liabilities are grouped into **collapsible cards per category** (tap to expand for individual items; the collapsed card shows the category total).
 - **Custom ordering** — long-press and drag to reorder category cards, or reorder items within a category (items stay within their own type). Your order is saved.
 - **Portfolios** — create multiple portfolios (e.g. *Personal*, *Family*, *Business*), set a **default** that powers the home screen, and switch between them at any time. Each portfolio has its own net worth.
+- **Statistics** — donut charts breaking down assets and liabilities by category, with per-slice percentages and totals in your base currency.
 - **Multi-currency** — hold assets in any currency; Networthy converts everything into your chosen base currency using cached exchange rates.
 - **Security & privacy**
-  - The local database is encrypted with **SQLCipher (AES-256)**; the key is generated on-device and stored in the **Android Keystore**.
-  - Optional **app lock** with fingerprint or device PIN.
-  - The app window is marked secure, so contents are hidden from screenshots and the recents preview.
-- **Encrypted export / import** — back up selected portfolios (or all of them) to a password-protected file (AES-256-GCM with PBKDF2), and restore them on any device.
-- **Beautiful, adaptive UI** — Material 3 with light/dark themes and **Material You** dynamic color on Android 12+.
+  - The local database is encrypted with **SQLCipher (AES-256)**; the key is generated on-device and stored in the **Android Keystore** / **iOS Keychain**.
+  - Optional **app lock** with biometrics or device PIN, re-locking whenever the app leaves the foreground.
+  - Screenshot protection: `FLAG_SECURE` on Android, and a blur overlay in the iOS app switcher.
+  - **Hide balances** hides every monetary amount behind `••••` with one tap.
+- **Encrypted export / import** — back up selected portfolios (or all of them) to a password-protected file (AES-256-GCM with PBKDF2-HMAC-SHA256), and restore them on any device.
+- **Adaptive Material 3 UI** — light/dark/system themes, **Material You** dynamic color on Android 12+, a bottom navigation bar on phones and a navigation rail on tablets and larger windows.
 
 ## Privacy
 
@@ -35,61 +37,80 @@ No account, no analytics, no tracking. Your portfolio values, names and holdings
 
 | Area | Choice |
 | --- | --- |
-| Language | Kotlin |
-| UI | Jetpack Compose, Material 3 |
-| Architecture | MVVM with a lightweight manual DI container |
-| Persistence | Room + SQLCipher (encrypted) |
-| Keys & secrets | Android Keystore via `security-crypto` |
-| Auth | AndroidX Biometric (fingerprint / device credential) |
-| Preferences | DataStore |
-| Networking | Retrofit + OkHttp + Gson |
-| Async | Kotlin Coroutines & Flow |
+| Language | Dart |
+| UI | Flutter, Material 3 |
+| Architecture | MVVM (`ChangeNotifier` view models) with a lightweight manual DI container |
+| Persistence | `sqflite_sqlcipher` (encrypted SQLite) |
+| Keys & secrets | `flutter_secure_storage` (Android Keystore / iOS Keychain) |
+| Auth | `local_auth` (biometrics / device credential) |
+| Preferences | `shared_preferences` |
+| Networking | `http` with hand-written JSON models |
+| Crypto | `pointycastle` (PBKDF2-HMAC-SHA256 + AES-256-GCM) |
+| Dynamic color | `dynamic_color` + `material_color_utilities` |
 
-### Module layout
+### Project layout
 
 ```
-app/src/main/java/com/cairnlabworks/mywealth/
+lib/
 ├── data/
-│   ├── local/        Room database, entities, DAOs (encrypted)
+│   ├── local/        Database, entities, DAOs (encrypted SQLCipher)
 │   ├── remote/       Stock price + FX rate APIs
 │   ├── repository/   Repositories + net-worth calculation
-│   ├── security/     Keystore key provider + backup crypto
+│   ├── security/     Database key provider + backup crypto
 │   └── backup/       Encrypted export / import
 ├── domain/model/     Enums and value types
-├── di/               AppContainer + ViewModel factories
+├── di/               AppContainer + AppScope
 ├── ui/
-│   ├── theme/        Material 3 theme, color, type
+│   ├── theme/        Material 3 theme, color, dynamic color
 │   ├── home/         Net worth home screen
 │   ├── asset/        Asset editor
 │   ├── liability/    Liability editor
 │   ├── portfolio/    Portfolio management
+│   ├── statistics/   Breakdown charts
 │   ├── settings/     Settings, export/import, app lock
 │   ├── lock/         Biometric lock screen
-│   ├── navigation/   Navigation graph + bottom bar
-│   └── components/   Reusable Compose widgets
-└── util/             Currency + biometric helpers
+│   ├── navigation/   Adaptive shell (navigation bar / rail)
+│   └── components/   Reusable widgets
+└── util/             Currency, ordering, biometric and time helpers
 ```
+
+Business logic lives in plain Dart (no Flutter imports) so it can be unit-tested with `dart test`.
 
 ## Building
 
 Requirements:
 
-- Android Studio (Koala or newer recommended)
-- JDK 17
-- Android SDK with API level 34
-
-Steps:
-
-1. Open the project in Android Studio; it will create a `local.properties` pointing at your SDK.
-2. Let Gradle sync (this downloads Gradle 8.7 and all dependencies).
-3. Run the `app` configuration on a device or emulator (minSdk 26 / Android 8.0+).
-
-From the command line:
+- Flutter (stable channel, Dart SDK ≥ 3.13)
+- Android: JDK 17 and the Android SDK (minSdk 26 / Android 8.0+)
+- iOS: Xcode 15+ and CocoaPods (iOS 15+)
 
 ```bash
-./gradlew :app:assembleDebug
+flutter pub get
+flutter run                 # debug on a connected device
+flutter build apk           # Android
+flutter build ipa           # iOS
 ```
+
+The application id / bundle id is `com.cairnlabworks.mywealth` and the version is `1.0.0`.
+
+## Quality checks
+
+```bash
+dart format .
+flutter analyze
+dart test                   # pure-Dart unit tests (96 tests)
+```
+
+The test suite covers the pieces where behaviour must be exact: currency formatting and rounding, net-worth and FX conversion, asset/liability form validation and entity mapping, category ordering, list labels, quote/FX response parsing, and — most importantly — the encrypted backup format, which is verified byte-for-byte against a file produced by the original Android implementation.
+
+### Migrating from the Android (Kotlin) release
+
+The Flutter app uses the same `MWB1` encrypted backup container as the Kotlin app, so backups exported from the old app import directly here. The on-disk database itself is *not* migrated in place: the SQLCipher passphrase is now stored through `flutter_secure_storage`, so an existing Kotlin database cannot be opened. **Export an encrypted backup from the old app and import it after installing this one.**
+
+### Validation notes
+
+`flutter analyze`, `dart format` and `dart test` all run clean in this repository. Widget tests (`flutter test`) and platform builds (`flutter build`) additionally require the prebuilt Flutter engine artifacts, which were not downloadable in the environment used for the migration; the UI layer is therefore verified by static analysis only.
 
 ## License
 
-Released under the [MIT License](LICENSE). Networthy is an independent, open-source project and is not affiliated with or endorsed by Google. It uses Google's Material Design system for its UI.
+Released under the [MIT License](LICENSE). Networthy is an independent, open-source project and is not affiliated with or endorsed by Google or Apple. It uses Google's Material Design system for its UI.
