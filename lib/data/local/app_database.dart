@@ -29,36 +29,55 @@ class AppDatabase {
       StreamController<Set<String>>.broadcast();
 
   /// Opens (or creates) the encrypted database with [password] as the key.
+  ///
+  /// Migrations are managed manually via `PRAGMA user_version` instead of
+  /// sqflite's `version`/`onCreate`/`onUpgrade` callbacks. Those callbacks make
+  /// sqflite_common cast the open options to its concrete
+  /// `SqfliteOpenDatabaseOptions`, which the `sqflite_sqlcipher` options object
+  /// does not extend, so the version-managed open path throws
+  /// "SqfliteSqlCipherOpenDatabaseOptions is not a subtype of
+  /// SqfliteOpenDatabaseOptions". Opening with just the password sidesteps that
+  /// path entirely while keeping the exact same schema and migration steps.
   static Future<AppDatabase> open({
     required String path,
     required String password,
   }) async {
-    final Database db = await openDatabase(
-      path,
-      password: password,
-      version: schemaVersion,
-      onConfigure: (Database db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: (Database db, int version) async {
-        for (final String statement in _createStatements) {
-          await db.execute(statement);
-        }
-      },
-      onUpgrade: (Database db, int oldVersion, int newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute(
-            'ALTER TABLE assets ADD COLUMN position INTEGER NOT NULL DEFAULT 0',
-          );
-          await db.execute(
-            'ALTER TABLE liabilities '
-            'ADD COLUMN position INTEGER NOT NULL DEFAULT 0',
-          );
-        }
-      },
-      onDowngrade: onDatabaseDowngradeDelete,
-    );
+    final Database db = await openDatabase(path, password: password);
+    await _migrate(db);
     return AppDatabase(db);
+  }
+
+  /// Applies the schema at [schemaVersion], creating tables on first run and
+  /// upgrading older databases in place, tracking progress with
+  /// `PRAGMA user_version`.
+  static Future<void> _migrate(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+    final int currentVersion = Sqflite.firstIntValue(
+          await db.rawQuery('PRAGMA user_version'),
+        ) ??
+        0;
+
+    if (currentVersion == schemaVersion) return;
+
+    if (currentVersion == 0) {
+      await db.transaction((Transaction txn) async {
+        for (final String statement in _createStatements) {
+          await txn.execute(statement);
+        }
+      });
+    } else if (currentVersion < 2) {
+      await db.transaction((Transaction txn) async {
+        await txn.execute(
+          'ALTER TABLE assets ADD COLUMN position INTEGER NOT NULL DEFAULT 0',
+        );
+        await txn.execute(
+          'ALTER TABLE liabilities '
+          'ADD COLUMN position INTEGER NOT NULL DEFAULT 0',
+        );
+      });
+    }
+
+    await db.execute('PRAGMA user_version = $schemaVersion');
   }
 
   /// Emits the set of tables touched by the most recent write.
