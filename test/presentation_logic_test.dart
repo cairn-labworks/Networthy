@@ -1,0 +1,218 @@
+import 'package:networthy/data/local/entity/portfolio_entity.dart';
+import 'package:networthy/data/local/entity/asset_entity.dart';
+import 'package:networthy/domain/model/asset_type.dart';
+import 'package:networthy/domain/model/liability_type.dart';
+import 'package:networthy/ui/home/category_groups.dart';
+import 'package:networthy/ui/statistics/chart_format.dart';
+import 'package:networthy/util/category_order.dart';
+import 'package:networthy/util/collections.dart';
+import 'package:test/test.dart';
+
+PortfolioEntity portfolio(int id, String name, {bool isDefault = false}) =>
+    PortfolioEntity(
+      id: id,
+      name: name,
+      isDefault: isDefault,
+      createdAt: 0,
+      updatedAt: 0,
+    );
+
+void main() {
+  group('orderTypes', () {
+    test('follows the saved order and appends new types', () {
+      final List<AssetType> ordered = orderTypes<AssetType>(
+        <AssetType>[AssetType.cash, AssetType.stock, AssetType.gold],
+        <String>['GOLD', 'CASH'],
+        AssetType.fromName,
+      );
+      expect(ordered, <AssetType>[
+        AssetType.gold,
+        AssetType.cash,
+        AssetType.stock,
+      ]);
+    });
+
+    test('ignores saved types that are not present', () {
+      final List<AssetType> ordered = orderTypes<AssetType>(
+        <AssetType>[AssetType.cash],
+        <String>['STOCK', 'CASH'],
+        AssetType.fromName,
+      );
+      expect(ordered, <AssetType>[AssetType.cash]);
+    });
+
+    test('unknown saved names resolve to the fallback type', () {
+      final List<LiabilityType> ordered = orderTypes<LiabilityType>(
+        <LiabilityType>[LiabilityType.other, LiabilityType.loan],
+        <String>['NOT_A_TYPE'],
+        LiabilityType.fromName,
+      );
+      // "NOT_A_TYPE" parses to OTHER, which is present and therefore first.
+      expect(ordered, <LiabilityType>[LiabilityType.other, LiabilityType.loan]);
+    });
+
+    test('an empty saved order keeps the natural enum order', () {
+      final List<AssetType> ordered = orderTypes<AssetType>(
+        <AssetType>[AssetType.other, AssetType.stock, AssetType.cash],
+        const <String>[],
+        AssetType.fromName,
+      );
+      expect(ordered, <AssetType>[
+        AssetType.stock,
+        AssetType.cash,
+        AssetType.other,
+      ]);
+    });
+  });
+
+  group('resolveActivePortfolio', () {
+    final List<PortfolioEntity> portfolios = <PortfolioEntity>[
+      portfolio(1, 'First'),
+      portfolio(2, 'Main', isDefault: true),
+      portfolio(3, 'Side'),
+    ];
+
+    test('prefers the explicitly selected portfolio', () {
+      expect(resolveActivePortfolio(portfolios, 3)?.id, 3);
+    });
+
+    test('falls back to the default when the selection is gone', () {
+      expect(resolveActivePortfolio(portfolios, 99)?.id, 2);
+    });
+
+    test('falls back to the first portfolio when none is default', () {
+      final List<PortfolioEntity> plain = <PortfolioEntity>[
+        portfolio(5, 'A'),
+        portfolio(6, 'B'),
+      ];
+      expect(resolveActivePortfolio(plain, null)?.id, 5);
+    });
+
+    test('returns null when there are no portfolios', () {
+      expect(resolveActivePortfolio(const <PortfolioEntity>[], 1), isNull);
+    });
+  });
+
+  group('collection helpers', () {
+    test('groupBy preserves insertion order of keys and items', () {
+      final Map<String, List<int>> grouped = groupBy<String, int>(<int>[
+        1,
+        2,
+        3,
+        4,
+      ], (int value) => value.isEven ? 'even' : 'odd');
+      expect(grouped.keys.toList(), <String>['odd', 'even']);
+      expect(grouped['odd'], <int>[1, 3]);
+    });
+
+    test('sortedByDescending is stable for equal keys', () {
+      final List<String> sorted = sortedByDescending<String>(<String>[
+        'a',
+        'b',
+        'c',
+      ], (String _) => 0);
+      expect(sorted, <String>['a', 'b', 'c']);
+    });
+  });
+
+  group('home list labels', () {
+    AssetEntity asset({
+      required AssetType type,
+      double? quantity,
+      String? symbol,
+      String currency = 'USD',
+    }) => AssetEntity(
+      portfolioId: 1,
+      type: type,
+      name: 'X',
+      currency: currency,
+      quantity: quantity,
+      symbol: symbol,
+      createdAt: 0,
+      updatedAt: 0,
+    );
+
+    test('market assets show quantity x ticker', () {
+      expect(
+        assetSubtitle(
+          asset(type: AssetType.stock, quantity: 3, symbol: 'aapl'),
+          'USD',
+        ),
+        '3 × AAPL',
+      );
+    });
+
+    test('market assets without a ticker show units', () {
+      expect(
+        assetSubtitle(asset(type: AssetType.stock, quantity: 2.5), 'USD'),
+        '2.5 units',
+      );
+    });
+
+    test('quantity assets show the unit label', () {
+      expect(
+        assetSubtitle(asset(type: AssetType.gold, quantity: 10), 'USD'),
+        '10 g',
+      );
+    });
+
+    test('flat assets have no core subtitle', () {
+      expect(assetSubtitle(asset(type: AssetType.cash), 'USD'), '');
+    });
+
+    test('a foreign currency is appended', () {
+      expect(
+        assetSubtitle(asset(type: AssetType.cash, currency: 'EUR'), 'USD'),
+        '·  EUR',
+      );
+      expect(
+        assetSubtitle(
+          asset(type: AssetType.gold, quantity: 1, currency: 'EUR'),
+          'USD',
+        ),
+        '1 g  ·  EUR',
+      );
+    });
+
+    test('missing quantities render as a dash', () {
+      expect(
+        assetSubtitle(asset(type: AssetType.stock, symbol: 'AAPL'), 'USD'),
+        '— × AAPL',
+      );
+    });
+
+    test('item counts are singular for one', () {
+      expect(itemCountLabel(1), '1 item');
+      expect(itemCountLabel(0), '0 items');
+      expect(itemCountLabel(4), '4 items');
+    });
+
+    test('quantities drop a trailing .0', () {
+      expect(formatQuantity(7.0), '7');
+      expect(formatQuantity(7.25), '7.25');
+    });
+
+    test('the currency note is omitted for the base currency', () {
+      expect(currencyNote('USD', 'USD'), '');
+      expect(currencyNote('EUR', 'USD'), '  \u00b7  EUR');
+    });
+  });
+
+  group('percentageLabel', () {
+    test('uses whole numbers from ten percent up', () {
+      expect(percentageLabel(50, 100), '50%');
+      expect(percentageLabel(10, 100), '10%');
+      expect(percentageLabel(99.9, 100), '99%');
+    });
+
+    test('uses one decimal below ten percent', () {
+      expect(percentageLabel(5, 100), '5.0%');
+      expect(percentageLabel(0.05, 100), '0.1%');
+    });
+
+    test('is empty when there is nothing to divide by', () {
+      expect(percentageLabel(5, 0), '');
+      expect(percentageLabel(5, -1), '');
+    });
+  });
+}
