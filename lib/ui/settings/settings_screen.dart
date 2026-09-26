@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../data/backup/backup_models.dart';
 import '../../data/local/entity/portfolio_entity.dart';
 import '../../di/app_container.dart';
+import '../../domain/model/app_theme.dart';
 import '../../domain/model/theme_mode.dart';
 import '../../util/biometric_authenticator.dart';
 import '../../util/currency_util.dart';
@@ -77,15 +78,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: <Widget>[
               const _SectionTitle('Appearance'),
               _SettingRow(
-                title: 'Theme',
-                subtitle: settings.themeMode.displayName,
-                onTap: () => _showThemeDialog(settings.themeMode),
+                title: 'App theme',
+                subtitle:
+                    '${settings.appTheme.displayName} — '
+                    '${settings.appTheme.description}',
+                onTap: () => _showAppThemeDialog(settings.appTheme),
+              ),
+              _SettingRow(
+                title: 'Light / dark',
+                subtitle: settings.appTheme == AppTheme.midnight
+                    ? 'Always dark on Midnight'
+                    : settings.themeMode.displayName,
+                onTap: settings.appTheme == AppTheme.midnight
+                    ? null
+                    : () => _showThemeDialog(settings.themeMode),
               ),
               _SwitchRow(
                 title: 'Dynamic color',
-                subtitle: 'Use colors from your wallpaper (Android 12+)',
-                value: settings.dynamicColor,
-                onChanged: viewModel.setDynamicColor,
+                subtitle: settings.appTheme == AppTheme.midnight
+                    ? 'Not used on Midnight'
+                    : 'Use colors from your wallpaper (Android 12+)',
+                value:
+                    settings.dynamicColor &&
+                    settings.appTheme == AppTheme.classic,
+                onChanged: settings.appTheme == AppTheme.midnight
+                    ? null
+                    : viewModel.setDynamicColor,
               ),
               const Divider(height: 1),
               const _SectionTitle('Currency'),
@@ -135,7 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionTitle('About'),
               const _SettingRow(
                 title: 'Networthy',
-                subtitle: 'Version 1.0.0 · Open source (MIT)',
+                subtitle: 'Version 1.2.0 · Open source (MIT)',
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -205,6 +223,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     if (mode != null) _viewModel?.setThemeMode(mode);
+  }
+
+  Future<void> _showAppThemeDialog(AppTheme selected) async {
+    final AppTheme? theme = await showDialog<AppTheme>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('App theme'),
+        content: RadioGroup<AppTheme>(
+          groupValue: selected,
+          onChanged: (AppTheme? value) => Navigator.of(context).pop(value),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (final AppTheme option in AppTheme.values)
+                RadioListTile<AppTheme>(
+                  value: option,
+                  title: Text(option.displayName),
+                  subtitle: Text(option.description),
+                ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+    if (theme != null) _viewModel?.setAppTheme(theme);
   }
 
   Future<void> _showCurrencyPicker(String selected) async {
@@ -338,13 +387,14 @@ class _SwitchRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ValueChanged<bool>? onChanged = this.onChanged;
     return InkWell(
-      onTap: () => onChanged(!value),
+      onTap: onChanged == null ? null : () => onChanged(!value),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(

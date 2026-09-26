@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/model/app_theme.dart';
+import 'app_style.dart';
 import 'colors.dart';
 
 /// Semantic colors that are not part of the standard Material scheme.
@@ -135,21 +137,28 @@ const double shapeMedium = 16;
 const double shapeLarge = 24;
 const double shapeExtraLarge = 28;
 
-/// Builds the app theme, optionally seeded from the platform's dynamic
-/// (Material You) palette on Android 12+.
+/// Builds the app theme for the selected [appTheme]. [AppTheme.classic] adapts
+/// to [brightness] and an optional platform [dynamicScheme] (Material You),
+/// while [AppTheme.midnight] is always a fixed dark, colourful scheme.
 ThemeData buildTheme({
   required Brightness brightness,
   ColorScheme? dynamicScheme,
+  AppTheme appTheme = AppTheme.classic,
 }) {
-  final bool dark = brightness == Brightness.dark;
-  final ColorScheme scheme = dynamicScheme ?? (dark ? darkColors : lightColors);
+  final bool midnight = appTheme == AppTheme.midnight;
+  final bool dark = midnight || brightness == Brightness.dark;
+  final ColorScheme scheme = midnight
+      ? midnightColors
+      : (dynamicScheme ?? (dark ? darkColors : lightColors));
+  final AppStyle appStyle = midnight ? AppStyle.midnight : AppStyle.classic;
   return ThemeData(
     useMaterial3: true,
-    brightness: brightness,
+    brightness: dark ? Brightness.dark : Brightness.light,
     colorScheme: scheme,
     textTheme: appTypography,
     extensions: <ThemeExtension<dynamic>>[
       dark ? FinanceColors.dark : FinanceColors.light,
+      appStyle,
     ],
     cardTheme: CardThemeData(
       shape: RoundedRectangleBorder(

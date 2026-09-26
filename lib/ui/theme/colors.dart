@@ -86,3 +86,62 @@ const List<Color> chartColors = <Color>[
 ];
 
 Color chartColorAt(int index) => chartColors[index % chartColors.length];
+
+// ---------------------------------------------------------------------------
+// Midnight theme
+// ---------------------------------------------------------------------------
+
+/// Fixed dark, colourful scheme for [AppTheme.midnight]. Deep charcoal surfaces
+/// with a violet primary and emerald/cyan support colours.
+const ColorScheme midnightColors = ColorScheme(
+  brightness: Brightness.dark,
+  primary: Color(0xFFA78BFA),
+  onPrimary: Color(0xFF1E1145),
+  primaryContainer: Color(0xFF4F46E5),
+  onPrimaryContainer: Color(0xFFEDE9FF),
+  secondary: Color(0xFF34D399),
+  onSecondary: Color(0xFF04231B),
+  secondaryContainer: Color(0xFF12362B),
+  onSecondaryContainer: Color(0xFFD1FAE5),
+  tertiary: Color(0xFF22D3EE),
+  onTertiary: Color(0xFF04262E),
+  tertiaryContainer: Color(0xFF0E3A45),
+  onTertiaryContainer: Color(0xFFCFF6FF),
+  error: Color(0xFFFF8A8A),
+  onError: Color(0xFF3A0A0A),
+  errorContainer: Color(0xFF5A1414),
+  onErrorContainer: Color(0xFFFFD9D6),
+  surface: Color(0xFF0D1119),
+  onSurface: Color(0xFFE8EDF4),
+  surfaceContainerLowest: Color(0xFF090B11),
+  surfaceContainerLow: Color(0xFF11151E),
+  surfaceContainer: Color(0xFF161C26),
+  surfaceContainerHigh: Color(0xFF1C2330),
+  surfaceContainerHighest: Color(0xFF232B3A),
+  onSurfaceVariant: Color(0xFF97A1B3),
+  outline: Color(0xFF3A4353),
+  outlineVariant: Color(0xFF262D3A),
+  surfaceTint: Color(0xFFA78BFA),
+  inverseSurface: Color(0xFFE8EDF4),
+  onInverseSurface: Color(0xFF0D1119),
+  inversePrimary: Color(0xFF4F46E5),
+);
+
+/// Vivid accent colours cycled per asset/liability category on the Midnight
+/// theme so each type reads as its own colour.
+const List<Color> categoryPalette = <Color>[
+  Color(0xFF6C8BFF), // indigo
+  Color(0xFF34D399), // emerald
+  Color(0xFFFBBF24), // amber
+  Color(0xFFA78BFA), // violet
+  Color(0xFF22D3EE), // cyan
+  Color(0xFFFB923C), // orange
+  Color(0xFFF472B6), // pink
+  Color(0xFF2DD4BF), // teal
+  Color(0xFF60A5FA), // blue
+  Color(0xFFF87171), // red
+];
+
+Color categoryColorAt(int index) =>
+    categoryPalette[index % categoryPalette.length];
+

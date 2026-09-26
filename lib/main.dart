@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import 'data/repository/settings_repository.dart';
 import 'di/app_container.dart';
+import 'domain/model/app_theme.dart';
 import 'domain/model/theme_mode.dart';
 import 'ui/lock/lock_screen.dart';
 import 'ui/navigation/app_shell.dart';
@@ -40,23 +41,30 @@ class NetworthyApp extends StatelessWidget {
         }
         return DynamicColorBuilder(
           builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-            final bool useDynamic = settings.dynamicColor;
+            final AppTheme appTheme = settings.appTheme;
+            // Wallpaper colors only apply to the Classic theme.
+            final bool useDynamic =
+                settings.dynamicColor && appTheme == AppTheme.classic;
             return MaterialApp(
               title: 'Networthy',
               debugShowCheckedModeBanner: false,
               theme: buildTheme(
                 brightness: Brightness.light,
                 dynamicScheme: useDynamic ? lightDynamic : null,
+                appTheme: appTheme,
               ),
               darkTheme: buildTheme(
                 brightness: Brightness.dark,
                 dynamicScheme: useDynamic ? darkDynamic : null,
+                appTheme: appTheme,
               ),
-              themeMode: switch (settings.themeMode) {
-                AppThemeMode.system => ThemeMode.system,
-                AppThemeMode.light => ThemeMode.light,
-                AppThemeMode.dark => ThemeMode.dark,
-              },
+              themeMode: appTheme == AppTheme.midnight
+                  ? ThemeMode.dark
+                  : switch (settings.themeMode) {
+                      AppThemeMode.system => ThemeMode.system,
+                      AppThemeMode.light => ThemeMode.light,
+                      AppThemeMode.dark => ThemeMode.dark,
+                    },
               home: AppLockGate(
                 appLockEnabled: settings.appLockEnabled,
                 child: const AppShell(),

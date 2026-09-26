@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/model/app_theme.dart';
 import '../../domain/model/theme_mode.dart';
 import '../../util/currency_util.dart';
 
@@ -9,6 +10,7 @@ import '../../util/currency_util.dart';
 class AppSettings {
   const AppSettings({
     this.themeMode = AppThemeMode.system,
+    this.appTheme = AppTheme.classic,
     this.dynamicColor = true,
     required this.baseCurrency,
     this.appLockEnabled = false,
@@ -17,6 +19,7 @@ class AppSettings {
   });
 
   final AppThemeMode themeMode;
+  final AppTheme appTheme;
   final bool dynamicColor;
   final String baseCurrency;
   final bool appLockEnabled;
@@ -38,6 +41,7 @@ class SettingsRepository {
   SettingsRepository(this._prefs);
 
   static const String _keyThemeMode = 'theme_mode';
+  static const String _keyAppTheme = 'app_theme';
   static const String _keyDynamicColor = 'dynamic_color';
   static const String _keyBaseCurrency = 'base_currency';
   static const String _keyAppLock = 'app_lock_enabled';
@@ -56,6 +60,7 @@ class SettingsRepository {
 
   AppSettings get current => AppSettings(
     themeMode: AppThemeMode.fromName(_prefs.getString(_keyThemeMode)),
+    appTheme: AppTheme.fromName(_prefs.getString(_keyAppTheme)),
     dynamicColor: _prefs.getBool(_keyDynamicColor) ?? true,
     baseCurrency:
         _prefs.getString(_keyBaseCurrency) ?? CurrencyUtil.deviceCurrencyCode(),
@@ -71,6 +76,11 @@ class SettingsRepository {
 
   Future<void> setThemeMode(AppThemeMode mode) async {
     await _prefs.setString(_keyThemeMode, mode.storageName);
+    _emit();
+  }
+
+  Future<void> setAppTheme(AppTheme theme) async {
+    await _prefs.setString(_keyAppTheme, theme.storageName);
     _emit();
   }
 

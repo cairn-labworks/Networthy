@@ -8,6 +8,8 @@ import '../../util/currency_util.dart';
 import '../components/drag_reorder_column.dart';
 import '../components/type_icons.dart';
 import '../components/ui_components.dart';
+import '../theme/app_style.dart';
+import '../theme/colors.dart';
 import '../theme/theme.dart';
 import 'category_groups.dart';
 import 'home_view_model.dart';
@@ -108,10 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           floatingActionButton: state.activePortfolio == null
               ? null
-              : FloatingActionButton.extended(
+              : _AddFab(
                   onPressed: () => _showAddSheet(state.activePortfolio!),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add'),
                 ),
           body: state.loading
               ? const Center(child: CircularProgressIndicator())
@@ -302,6 +302,7 @@ class _HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool colorful = AppStyle.of(context).colorfulCategories;
     return ListView(
       padding: const EdgeInsets.only(top: 8, bottom: 96),
       children: <Widget>[
@@ -347,6 +348,9 @@ class _HomeContent extends StatelessWidget {
                   final String key = 'asset-${group.type.storageName}';
                   return _CategoryCardShell(
                     icon: assetTypeIcon(group.type),
+                    accent: colorful
+                        ? categoryColorAt(group.type.index)
+                        : null,
                     title: group.type.displayName,
                     count: group.items.length,
                     totalText: state.hideBalances
@@ -421,6 +425,9 @@ class _HomeContent extends StatelessWidget {
                   final String key = 'liability-${group.type.storageName}';
                   return _CategoryCardShell(
                     icon: liabilityTypeIcon(group.type),
+                    accent: colorful
+                        ? categoryColorAt(group.type.index + 5)
+                        : null,
                     title: group.type.displayName,
                     count: group.items.length,
                     totalText: state.hideBalances
@@ -468,6 +475,50 @@ class _HomeContent extends StatelessWidget {
   }
 }
 
+class _AddFab extends StatelessWidget {
+  const _AddFab({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Color>? gradient = AppStyle.of(context).fabGradient;
+    if (gradient == null) {
+      return FloatingActionButton.extended(
+        onPressed: onPressed,
+        icon: const Icon(Icons.add),
+        label: const Text('Add'),
+      );
+    }
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: gradient.last.withValues(alpha: 0.45),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.extended(
+        onPressed: onPressed,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        highlightElevation: 0,
+        icon: const Icon(Icons.add),
+        label: const Text('Add'),
+      ),
+    );
+  }
+}
+
 class _CategoryCardShell extends StatelessWidget {
   const _CategoryCardShell({
     required this.icon,
@@ -478,6 +529,7 @@ class _CategoryCardShell extends StatelessWidget {
     required this.isDragging,
     required this.onToggle,
     required this.expandedContent,
+    this.accent,
   });
 
   final IconData icon;
@@ -489,9 +541,63 @@ class _CategoryCardShell extends StatelessWidget {
   final VoidCallback onToggle;
   final Widget expandedContent;
 
+  /// Per-category accent colour used by the Midnight theme. Null keeps the
+  /// neutral Material look.
+  final Color? accent;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final Color? accent = this.accent;
+    Widget header = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: <Widget>[
+          TypeAvatar(icon, accent: accent),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  itemCountLabel(count),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            totalText,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: accent,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Icon(
+            isExpanded ? Icons.expand_less : Icons.expand_more,
+            color: theme.colorScheme.onSurfaceVariant,
+            semanticLabel: isExpanded ? 'Collapse' : 'Expand',
+          ),
+        ],
+      ),
+    );
+    if (accent != null) {
+      header = DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(left: BorderSide(color: accent, width: 4)),
+        ),
+        child: header,
+      );
+    }
     return Card(
       elevation: isDragging ? 8 : 1,
       shape: RoundedRectangleBorder(
@@ -500,49 +606,7 @@ class _CategoryCardShell extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: <Widget>[
-          InkWell(
-            onTap: onToggle,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: <Widget>[
-                  TypeAvatar(icon),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          title,
-                          style: theme.textTheme.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          itemCountLabel(count),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    totalText,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    semanticLabel: isExpanded ? 'Collapse' : 'Expand',
-                  ),
-                ],
-              ),
-            ),
-          ),
+          InkWell(onTap: onToggle, child: header),
           if (isExpanded) ...<Widget>[
             Divider(height: 1, color: theme.colorScheme.outlineVariant),
             const SizedBox(height: 4),

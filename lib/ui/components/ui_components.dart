@@ -36,13 +36,29 @@ class SectionHeader extends StatelessWidget {
 
 /// Round icon badge used in front of holdings and category headers.
 class TypeAvatar extends StatelessWidget {
-  const TypeAvatar(this.icon, {super.key});
+  const TypeAvatar(this.icon, {this.accent, super.key});
 
   final IconData icon;
+
+  /// When set, tints the avatar with this colour (Midnight theme) instead of
+  /// the default `secondaryContainer`.
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
+    final Color? accent = this.accent;
+    if (accent != null) {
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.20),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, size: 22, color: accent),
+      );
+    }
     return Container(
       width: 40,
       height: 40,

@@ -2,7 +2,7 @@ name: networthy
 description: "Private, offline-first net worth tracker with on-device encryption."
 publish_to: 'none'
 
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ^3.13.0
