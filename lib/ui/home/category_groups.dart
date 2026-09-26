@@ -1,7 +1,84 @@
 import '../../data/local/entity/asset_entity.dart';
 import '../../data/local/entity/liability_entity.dart';
+import '../../data/repository/currency_converter.dart';
 import '../../domain/model/asset_type.dart';
 import '../../domain/model/liability_type.dart';
+
+/// A single asset within a category, paired with its value already converted to
+/// the portfolio's base currency so the expanded row can show the same currency
+/// as the group total.
+class AssetLine {
+  const AssetLine({required this.asset, required this.convertedValue});
+
+  final AssetEntity asset;
+
+  /// [asset.value] expressed in the base currency.
+  final double convertedValue;
+}
+
+/// A single liability within a category, paired with its value converted to the
+/// base currency.
+class LiabilityLine {
+  const LiabilityLine({required this.liability, required this.convertedValue});
+
+  final LiabilityEntity liability;
+
+  /// [liability.value] expressed in the base currency.
+  final double convertedValue;
+}
+
+/// Pairs each asset with its value converted to [baseCurrency], so the expanded
+/// rows and the group total both read in the portfolio's currency.
+List<AssetLine> buildAssetLines(
+  Iterable<AssetEntity> assets,
+  CurrencyConverter converter,
+  String baseCurrency,
+) => <AssetLine>[
+  for (final AssetEntity asset in assets)
+    AssetLine(
+      asset: asset,
+      convertedValue: converter.convert(
+        asset.value,
+        asset.currency,
+        baseCurrency,
+      ),
+    ),
+];
+
+/// Pairs each liability with its value converted to [baseCurrency].
+List<LiabilityLine> buildLiabilityLines(
+  Iterable<LiabilityEntity> liabilities,
+  CurrencyConverter converter,
+  String baseCurrency,
+) => <LiabilityLine>[
+  for (final LiabilityEntity liability in liabilities)
+    LiabilityLine(
+      liability: liability,
+      convertedValue: converter.convert(
+        liability.value,
+        liability.currency,
+        baseCurrency,
+      ),
+    ),
+];
+
+/// Sum of the already-converted values of [lines].
+double sumAssetLines(Iterable<AssetLine> lines) {
+  double total = 0;
+  for (final AssetLine line in lines) {
+    total += line.convertedValue;
+  }
+  return total;
+}
+
+/// Sum of the already-converted values of [lines].
+double sumLiabilityLines(Iterable<LiabilityLine> lines) {
+  double total = 0;
+  for (final LiabilityLine line in lines) {
+    total += line.convertedValue;
+  }
+  return total;
+}
 
 /// One collapsible asset category (all assets sharing a type) shown on Home.
 class AssetCategoryGroup {
@@ -17,7 +94,7 @@ class AssetCategoryGroup {
   /// Total value of the group, converted to the base currency.
   final double total;
   final String baseCurrency;
-  final List<AssetEntity> items;
+  final List<AssetLine> items;
 }
 
 /// One collapsible liability category (all liabilities sharing a type).
@@ -32,7 +109,7 @@ class LiabilityCategoryGroup {
   final LiabilityType type;
   final double total;
   final String baseCurrency;
-  final List<LiabilityEntity> items;
+  final List<LiabilityLine> items;
 }
 
 /// The secondary line under an asset row: quantity, symbol and, when it differs

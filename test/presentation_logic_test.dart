@@ -1,5 +1,7 @@
 import 'package:networthy/data/local/entity/portfolio_entity.dart';
 import 'package:networthy/data/local/entity/asset_entity.dart';
+import 'package:networthy/data/local/entity/liability_entity.dart';
+import 'package:networthy/data/repository/currency_converter.dart';
 import 'package:networthy/domain/model/asset_type.dart';
 import 'package:networthy/domain/model/liability_type.dart';
 import 'package:networthy/ui/home/category_groups.dart';
@@ -213,6 +215,78 @@ void main() {
     test('is empty when there is nothing to divide by', () {
       expect(percentageLabel(5, 0), '');
       expect(percentageLabel(5, -1), '');
+    });
+  });
+
+  group('expanded rows convert to the base currency', () {
+    // 1 USD = 0.5 GBP, 1 USD = 80 INR.
+    const CurrencyConverter converter = CurrencyConverter(<String, double>{
+      'GBP': 0.5,
+      'INR': 80.0,
+    });
+
+    AssetEntity cashAsset(double amount, String currency) => AssetEntity(
+      portfolioId: 1,
+      type: AssetType.cash,
+      name: 'Wallet',
+      currency: currency,
+      manualValue: amount,
+      createdAt: 0,
+      updatedAt: 0,
+    );
+
+    LiabilityEntity loan(double amount, String currency) => LiabilityEntity(
+      portfolioId: 1,
+      type: LiabilityType.loan,
+      name: 'Loan',
+      currency: currency,
+      amount: amount,
+      createdAt: 0,
+      updatedAt: 0,
+    );
+
+    test('each asset line carries its value in the base currency', () {
+      // 100 USD -> 50 GBP, 40 GBP stays 40 GBP.
+      final List<AssetLine> lines = buildAssetLines(
+        <AssetEntity>[cashAsset(100, 'USD'), cashAsset(40, 'GBP')],
+        converter,
+        'GBP',
+      );
+      expect(lines[0].convertedValue, 50);
+      expect(lines[1].convertedValue, 40);
+      // The underlying entity keeps its original currency for the subtitle note.
+      expect(lines[0].asset.currency, 'USD');
+    });
+
+    test('asset line total matches the sum of converted values', () {
+      final List<AssetLine> lines = buildAssetLines(
+        <AssetEntity>[cashAsset(100, 'USD'), cashAsset(40, 'GBP')],
+        converter,
+        'GBP',
+      );
+      expect(sumAssetLines(lines), 90);
+    });
+
+    test('each liability line carries its value in the base currency', () {
+      // 800 INR -> 10 USD, keeping USD as 5 USD.
+      final List<LiabilityLine> lines = buildLiabilityLines(
+        <LiabilityEntity>[loan(800, 'INR'), loan(5, 'USD')],
+        converter,
+        'USD',
+      );
+      expect(lines[0].convertedValue, 10);
+      expect(lines[1].convertedValue, 5);
+      expect(sumLiabilityLines(lines), 15);
+    });
+
+    test('an unknown rate falls back to the original amount', () {
+      final List<AssetLine> lines = buildAssetLines(
+        <AssetEntity>[cashAsset(100, 'JPY')],
+        converter,
+        'GBP',
+      );
+      // No JPY rate cached, so the amount passes through 1:1.
+      expect(lines.single.convertedValue, 100);
     });
   });
 }

@@ -259,17 +259,19 @@ class HomeViewModel extends ChangeNotifier {
     );
     return <AssetCategoryGroup>[
       for (final AssetType type in ordered)
-        AssetCategoryGroup(
-          type: type,
-          total: _sum(
-            byType[type]!.map(
-              (AssetEntity a) =>
-                  _converter.convert(a.value, a.currency, baseCurrency),
-            ),
-          ),
-          baseCurrency: baseCurrency,
-          items: byType[type]!,
-        ),
+        () {
+          final List<AssetLine> lines = buildAssetLines(
+            byType[type]!,
+            _converter,
+            baseCurrency,
+          );
+          return AssetCategoryGroup(
+            type: type,
+            total: sumAssetLines(lines),
+            baseCurrency: baseCurrency,
+            items: lines,
+          );
+        }(),
     ];
   }
 
@@ -289,26 +291,20 @@ class HomeViewModel extends ChangeNotifier {
     );
     return <LiabilityCategoryGroup>[
       for (final LiabilityType type in ordered)
-        LiabilityCategoryGroup(
-          type: type,
-          total: _sum(
-            byType[type]!.map(
-              (LiabilityEntity l) =>
-                  _converter.convert(l.value, l.currency, baseCurrency),
-            ),
-          ),
-          baseCurrency: baseCurrency,
-          items: byType[type]!,
-        ),
+        () {
+          final List<LiabilityLine> lines = buildLiabilityLines(
+            byType[type]!,
+            _converter,
+            baseCurrency,
+          );
+          return LiabilityCategoryGroup(
+            type: type,
+            total: sumLiabilityLines(lines),
+            baseCurrency: baseCurrency,
+            items: lines,
+          );
+        }(),
     ];
-  }
-
-  static double _sum(Iterable<double> values) {
-    double total = 0;
-    for (final double value in values) {
-      total += value;
-    }
-    return total;
   }
 
   @override

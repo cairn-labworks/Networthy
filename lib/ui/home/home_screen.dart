@@ -355,29 +355,32 @@ class _HomeContent extends StatelessWidget {
                     isExpanded: expanded[key] ?? false,
                     isDragging: dragging,
                     onToggle: () => onToggleExpanded(key),
-                    expandedContent: DragReorderColumn<AssetEntity>(
+                    expandedContent: DragReorderColumn<AssetLine>(
                       items: group.items,
-                      keyOf: (AssetEntity asset) => asset.id,
-                      onReordered: (List<AssetEntity> items) =>
+                      keyOf: (AssetLine line) => line.asset.id,
+                      onReordered: (List<AssetLine> items) =>
                           viewModel.onAssetItemsReordered(
-                            items.map((AssetEntity a) => a.id).toList(),
+                            items.map((AssetLine l) => l.asset.id).toList(),
                           ),
                       itemBuilder:
                           (
                             BuildContext context,
-                            AssetEntity asset,
+                            AssetLine line,
                             bool itemDragging,
                           ) => _HoldingItemRow(
-                            title: asset.name,
-                            subtitle: assetSubtitle(asset, group.baseCurrency),
+                            title: line.asset.name,
+                            subtitle: assetSubtitle(
+                              line.asset,
+                              group.baseCurrency,
+                            ),
                             amount: state.hideBalances
                                 ? CurrencyUtil.maskShort
                                 : CurrencyUtil.format(
-                                    asset.value,
-                                    asset.currency,
+                                    line.convertedValue,
+                                    group.baseCurrency,
                                   ),
                             isDragging: itemDragging,
-                            onOpen: () => onOpenAsset(asset),
+                            onOpen: () => onOpenAsset(line.asset),
                           ),
                     ),
                   );
@@ -426,32 +429,34 @@ class _HomeContent extends StatelessWidget {
                     isExpanded: expanded[key] ?? false,
                     isDragging: dragging,
                     onToggle: () => onToggleExpanded(key),
-                    expandedContent: DragReorderColumn<LiabilityEntity>(
+                    expandedContent: DragReorderColumn<LiabilityLine>(
                       items: group.items,
-                      keyOf: (LiabilityEntity liability) => liability.id,
-                      onReordered: (List<LiabilityEntity> items) =>
+                      keyOf: (LiabilityLine line) => line.liability.id,
+                      onReordered: (List<LiabilityLine> items) =>
                           viewModel.onLiabilityItemsReordered(
-                            items.map((LiabilityEntity l) => l.id).toList(),
+                            items
+                                .map((LiabilityLine l) => l.liability.id)
+                                .toList(),
                           ),
                       itemBuilder:
                           (
                             BuildContext context,
-                            LiabilityEntity liability,
+                            LiabilityLine line,
                             bool itemDragging,
                           ) => _HoldingItemRow(
-                            title: liability.name,
+                            title: line.liability.name,
                             subtitle: currencyNote(
-                              liability.currency,
+                              line.liability.currency,
                               group.baseCurrency,
                             ),
                             amount: state.hideBalances
                                 ? CurrencyUtil.maskShort
                                 : CurrencyUtil.format(
-                                    liability.value,
-                                    liability.currency,
+                                    line.convertedValue,
+                                    group.baseCurrency,
                                   ),
                             isDragging: itemDragging,
-                            onOpen: () => onOpenLiability(liability),
+                            onOpen: () => onOpenLiability(line.liability),
                           ),
                     ),
                   );
