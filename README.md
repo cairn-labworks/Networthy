@@ -31,7 +31,7 @@ Networthy is **offline-first**. The only network calls it makes are:
 1. **Stock/fund/crypto prices** — sends only the ticker symbol to a public finance endpoint.
 2. **Exchange rates** — sends only a base currency code to a public, key-less rates endpoint.
 
-No account, no analytics, no tracking. Your portfolio values, names and holdings are never transmitted.
+No account, no analytics, no tracking. Your portfolio values, names and holdings are never transmitted. Read the full [privacy policy](https://cairn-labworks.github.io/networthy/privacy/).
 
 ## Tech stack
 
@@ -87,11 +87,40 @@ Requirements:
 ```bash
 flutter pub get
 flutter run                 # debug on a connected device
-flutter build apk           # Android
+flutter build appbundle     # Android, Google Play bundle (.aab)
+flutter build apk --split-per-abi   # Android, per-ABI APKs
 flutter build ipa           # iOS
 ```
 
 The application id / bundle id is `com.cairnlabworks.mywealth` and the version is `1.0.0`.
+
+### Release signing
+
+Release builds are signed with the Cairn Labworks upload key, which is never committed. Create
+`android/key.properties` (git-ignored):
+
+```properties
+storeFile=C:/path/to/networthy-upload.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+`storeFile` is resolved relative to `android/app/`, or can be an absolute path. Without
+`key.properties`, release builds fall back to the debug key so `flutter run --release` still works,
+but Google Play rejects those builds. On Google Play, use Play App Signing: Google holds the app
+signing key and this key is only the upload key.
+
+The **Release** workflow (`.github/workflows/release.yml`) runs on `v*` tags, or manually from the
+Actions tab. It builds the signed `.aab` and per-ABI APKs and attaches them as a workflow artifact. It
+needs these repository secrets:
+
+| Secret | Value |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | The upload keystore, base64-encoded |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Key alias, for example `upload` |
+| `ANDROID_KEY_PASSWORD` | Key password |
 
 ## Quality checks
 
