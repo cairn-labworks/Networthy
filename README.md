@@ -92,7 +92,7 @@ flutter build apk --split-per-abi   # Android, per-ABI APKs
 flutter build ipa           # iOS
 ```
 
-The application id / bundle id is `com.cairnlabworks.mywealth` and the version is `1.0.0`.
+The application id / bundle id is `com.cairnlabworks.networthy` and the version is `1.0.0`.
 
 ### Release signing
 
