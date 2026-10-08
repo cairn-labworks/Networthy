@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Okanzo — Privacy Policy</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6; color: #1b1b1f; background: #fbfbfe;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 0 80px; }
+  h1 { font-size: 2rem; margin: 0 0 4px; }
+  .sub { color: #5a5a66; margin: 0 0 32px; }
+  h2 { font-size: 1.2rem; margin: 32px 0 8px; }
+  a { color: #1a7a52; }
+  code { background: rgba(0,0,0,.06); padding: 2px 6px; border-radius: 6px; }
+  .pill { display: inline-block; background: #e7f3ed; color: #1a7a52; border-radius: 999px; padding: 4px 12px; font-size: .85rem; margin-bottom: 24px; }
+  footer { margin-top: 48px; color: #5a5a66; font-size: .9rem; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e4e2e6; background: #141218; }
+    .sub, footer { color: #a6a4ab; }
+    code { background: rgba(255,255,255,.1); }
+    .pill { background: rgba(26,122,82,.22); color: #7fe0cf; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pill">Private by design</div>
+  <h1>Okanzo — Privacy Policy</h1>
+  <p class="sub">Last updated: 8 October 2026</p>
+
+  <p>
+    Okanzo is an offline-first net worth tracker published by Cairn Labworks. It is
+    built so that your financial data stays on your device. We do not run servers that
+    receive your data, we have no user accounts, and we do not use any analytics,
+    advertising, or tracking.
+  </p>
+
+  <h2>What stays on your device</h2>
+  <p>
+    All of your portfolios, assets, liabilities, notes and settings are stored only on
+    your device, in an encrypted SQLCipher database (AES-256). The database key is held
+    in the Android Keystore. Your data never leaves the device except when you
+    deliberately export an encrypted, password-protected backup file, which you control.
+  </p>
+
+  <h2>Network access</h2>
+  <p>
+    Okanzo makes network requests only to look up public market data. These requests
+    contain the minimum needed and never include your portfolio values, item names,
+    balances, or any personal information:
+  </p>
+  <ul>
+    <li>
+      <strong>Market prices</strong> &mdash; when you refresh or tap fetch-price on a
+      market-linked asset, only the <em>ticker symbol</em> is sent to the public Yahoo
+      Finance endpoint (<code>query1.finance.yahoo.com</code>).
+    </li>
+    <li>
+      <strong>Currency exchange rates</strong> &mdash; refreshed automatically (on launch
+      and at most once every 12 hours) so totals display correctly. Only a <em>base
+      currency code</em> is sent to <code>open.er-api.com</code>.
+    </li>
+  </ul>
+  <p>
+    These are third-party services with their own privacy practices; Okanzo sends them no
+    identifying data. Because they are non-free network services, this is disclosed on the
+    app's F-Droid listing as an anti-feature.
+  </p>
+
+  <h2>Data we collect</h2>
+  <p>
+    None. Okanzo has no accounts, no cloud sync, no analytics, no crash reporting, no
+    advertising identifiers, and no third-party trackers. We cannot see your data because
+    it never reaches us.
+  </p>
+
+  <h2>Permissions</h2>
+  <p>
+    Okanzo requests only internet access (for the market lookups above) and, optionally,
+    biometric/device-credential access if you enable the app lock.
+  </p>
+
+  <h2>Children's privacy</h2>
+  <p>Okanzo is a general-purpose finance tool and is not directed at children.</p>
+
+  <h2>Changes</h2>
+  <p>
+    If this policy changes, the updated version will be published at this page with a new
+    date above.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about privacy? Open an issue at
+    <a href="https://github.com/cairn-labworks/Okanzo/issues">github.com/cairn-labworks/Okanzo/issues</a>.
+  </p>
+
+  <footer>
+    Okanzo is free, open-source software released under the MIT License by Cairn Labworks.
+  </footer>
+</div>
+</body>
+</html>

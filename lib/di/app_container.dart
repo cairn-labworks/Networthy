@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,10 +39,9 @@ class AppContainer {
   static Future<AppContainer> create() async {
     final DatabaseKeyProvider keyProvider = const DatabaseKeyProvider();
     final String passphrase = await keyProvider.getOrCreatePassphrase();
-    final String path = p.join(
-      await getDatabasesPath(),
-      AppDatabase.databaseName,
-    );
+    final String databasesDir = await getDatabasesPath();
+    final String path = p.join(databasesDir, AppDatabase.databaseName);
+    await _migrateLegacyDatabase(databasesDir, path);
     final AppDatabase database = await AppDatabase.open(
       path: path,
       password: passphrase,
@@ -67,6 +68,25 @@ class AppContainer {
       fxRepository: FxRepository(fxRateDao, FxApi(client: client)),
       backupRepository: BackupRepository(portfolioDao, assetDao, liabilityDao),
     );
+  }
+
+  /// Before the app was renamed to Okanzo its encrypted database lived at
+  /// `mywealth.db`. When an existing user upgrades, move the old file (and its
+  /// SQLCipher/WAL sidecars) to the current name so their data survives the
+  /// rename. Runs only when the new database does not already exist.
+  static Future<void> _migrateLegacyDatabase(
+    String directory,
+    String currentPath,
+  ) async {
+    if (await File(currentPath).exists()) return;
+    for (final String suffix in const <String>['', '-wal', '-shm', '-journal']) {
+      final File legacy = File(
+        p.join(directory, '${AppDatabase.legacyDatabaseName}$suffix'),
+      );
+      if (await legacy.exists()) {
+        await legacy.rename('$currentPath$suffix');
+      }
+    }
   }
 
   final AppDatabase database;

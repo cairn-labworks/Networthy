@@ -20,7 +20,11 @@ class Tables {
 class AppDatabase {
   AppDatabase(this.db);
 
-  static const String databaseName = 'mywealth.db';
+  static const String databaseName = 'okanzo.db';
+
+  /// The pre-rebrand database filename. Kept only so upgrading users' data can
+  /// be migrated to [databaseName] (see AppContainer); it is not a brand name.
+  static const String legacyDatabaseName = 'mywealth.db';
   static const int schemaVersion = 2;
 
   final Database db;
