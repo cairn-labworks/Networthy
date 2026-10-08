@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../data/backup/backup_models.dart';
 import '../../data/local/entity/portfolio_entity.dart';
@@ -10,6 +11,7 @@ import '../../domain/model/app_theme.dart';
 import '../../domain/model/theme_mode.dart';
 import '../../util/biometric_authenticator.dart';
 import '../../util/currency_util.dart';
+import '../../util/link_opener.dart';
 import '../../util/relative_time.dart';
 import '../components/form_components.dart';
 import 'settings_view_model.dart';
@@ -155,6 +157,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Networthy',
                 subtitle: 'Version 1.2.0 · Open source (MIT)',
               ),
+              _SettingRow(
+                title: 'Privacy policy',
+                subtitle: 'cairn-labworks.github.io/networthy/privacy',
+                onTap: _openPrivacyPolicy,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -174,6 +181,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _openPrivacyPolicy() async {
+    if (await LinkOpener.open(LinkOpener.privacyPolicyUrl) || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: const Text('Privacy policy'),
+        content: const SelectableText(LinkOpener.privacyPolicyUrl),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(
+                const ClipboardData(text: LinkOpener.privacyPolicyUrl),
+              );
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Copy link'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
