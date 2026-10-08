@@ -5,7 +5,7 @@
 class BackupFile {
   const BackupFile({
     this.schema = currentSchema,
-    this.app = 'Networthy',
+    this.app = 'Okanzo',
     required this.exportedAt,
     required this.portfolios,
   });

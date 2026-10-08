@@ -63,7 +63,7 @@ class BackupCrypto {
     const int header = 4 + 1 + _saltLength + _ivLength;
     if (data.length < header) {
       throw const InvalidBackupException(
-        'File is not a valid Networthy backup.',
+        'File is not a valid Okanzo backup.',
       );
     }
     int offset = 0;
@@ -72,7 +72,7 @@ class BackupCrypto {
     for (int i = 0; i < _magic.length; i++) {
       if (magic[i] != _magic[i]) {
         throw const InvalidBackupException(
-          'File is not a valid Networthy backup.',
+          'File is not a valid Okanzo backup.',
         );
       }
     }

@@ -1,4 +1,4 @@
-# Networthy — marketing screenshots
+# Okanzo — marketing screenshots
 
 Store / landing-page promo screenshots in a **dark & colorful** style
 (inspired by the framing of [Streak](https://github.com/InlitX/streak)).

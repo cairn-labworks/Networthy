@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:networthy/data/backup/backup_mapper.dart';
-import 'package:networthy/data/backup/backup_models.dart';
-import 'package:networthy/data/local/entity/asset_entity.dart';
-import 'package:networthy/data/local/entity/liability_entity.dart';
-import 'package:networthy/domain/model/asset_type.dart';
-import 'package:networthy/domain/model/liability_type.dart';
-import 'package:networthy/util/relative_time.dart';
+import 'package:okanzo/data/backup/backup_mapper.dart';
+import 'package:okanzo/data/backup/backup_models.dart';
+import 'package:okanzo/data/local/entity/asset_entity.dart';
+import 'package:okanzo/data/local/entity/liability_entity.dart';
+import 'package:okanzo/domain/model/asset_type.dart';
+import 'package:okanzo/domain/model/liability_type.dart';
+import 'package:okanzo/util/relative_time.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -147,7 +147,7 @@ void main() {
       );
       expect(
         jsonEncode(file.toJson()),
-        '{"schema":1,"app":"Networthy","exportedAt":123,'
+        '{"schema":1,"app":"Okanzo","exportedAt":123,'
         '"portfolios":[{"name":"Main","isDefault":true,'
         '"assets":[],"liabilities":[]}]}',
       );
@@ -155,7 +155,7 @@ void main() {
 
     test('tolerates a file with missing collections', () {
       final BackupFile parsed = BackupFile.fromJson(
-        jsonDecode('{"schema":1,"app":"Networthy","exportedAt":1}')
+        jsonDecode('{"schema":1,"app":"Okanzo","exportedAt":1}')
             as Map<String, Object?>,
       );
       expect(parsed.portfolios, isNull);
@@ -165,7 +165,7 @@ void main() {
     test('parses portfolios with partial asset records', () {
       final BackupFile parsed = BackupFile.fromJson(
         jsonDecode(
-          '{"schema":1,"app":"Networthy","exportedAt":1,"portfolios":'
+          '{"schema":1,"app":"Okanzo","exportedAt":1,"portfolios":'
           '[{"name":"P","isDefault":false,"assets":'
           '[{"type":"CASH","name":"A","currency":"USD"}]}]}',
         ) as Map<String, Object?>,

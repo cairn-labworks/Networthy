@@ -1,4 +1,4 @@
-# Networthy
+# Okanzo
 
 A private, offline-first app for tracking your **net worth** — your assets minus your liabilities — organised into portfolios. Built with Flutter and Material 3, for **Android and iOS**.
 
@@ -7,7 +7,7 @@ A private, offline-first app for tracking your **net worth** — your assets min
 ## Features
 
 - **Assets** — track stocks, mutual funds/ETFs, crypto, gold, cash, bank deposits, real estate, vehicles, bonds and more. Each asset type shows only the fields that make sense for it.
-  - **Stocks / funds / crypto**: enter a ticker symbol, quantity and currency, and Networthy fetches the latest closing price to compute the holding's value automatically.
+  - **Stocks / funds / crypto**: enter a ticker symbol, quantity and currency, and Okanzo fetches the latest closing price to compute the holding's value automatically.
   - **Gold** and other quantity-based assets: enter a quantity and a price per unit.
   - **Cash, property, vehicles, …**: enter a single value.
 - **Liabilities** — track loans, mortgages, credit cards, pending payments and taxes.
@@ -15,7 +15,7 @@ A private, offline-first app for tracking your **net worth** — your assets min
 - **Custom ordering** — long-press and drag to reorder category cards, or reorder items within a category (items stay within their own type). Your order is saved.
 - **Portfolios** — create multiple portfolios (e.g. *Personal*, *Family*, *Business*), set a **default** that powers the home screen, and switch between them at any time. Each portfolio has its own net worth.
 - **Statistics** — donut charts breaking down assets and liabilities by category, with per-slice percentages and totals in your base currency.
-- **Multi-currency** — hold assets in any currency; Networthy converts everything into your chosen base currency using cached exchange rates.
+- **Multi-currency** — hold assets in any currency; Okanzo converts everything into your chosen base currency using cached exchange rates.
 - **Security & privacy**
   - The local database is encrypted with **SQLCipher (AES-256)**; the key is generated on-device and stored in the **Android Keystore** / **iOS Keychain**.
   - Optional **app lock** with biometrics or device PIN, re-locking whenever the app leaves the foreground.
@@ -26,12 +26,12 @@ A private, offline-first app for tracking your **net worth** — your assets min
 
 ## Privacy
 
-Networthy is **offline-first**. The only network calls it makes are:
+Okanzo is **offline-first**. The only network calls it makes are:
 
 1. **Stock/fund/crypto prices** — sends only the ticker symbol to a public finance endpoint.
 2. **Exchange rates** — sends only a base currency code to a public, key-less rates endpoint.
 
-No account, no analytics, no tracking. Your portfolio values, names and holdings are never transmitted. Read the full [privacy policy](https://cairn-labworks.github.io/networthy/privacy/).
+No account, no analytics, no tracking. Your portfolio values, names and holdings are never transmitted. Read the full [privacy policy](https://cairn-labworks.github.io/okanzo/privacy/).
 
 ## Tech stack
 
@@ -92,7 +92,7 @@ flutter build apk --split-per-abi   # Android, per-ABI APKs
 flutter build ipa           # iOS
 ```
 
-The application id / bundle id is `com.cairnlabworks.networthy` and the version is `1.0.0`.
+The application id / bundle id is `com.cairnlabworks.okanzo` and the version is `1.0.0`.
 
 ### Release signing
 
@@ -100,7 +100,7 @@ Release builds are signed with the Cairn Labworks upload key, which is never com
 `android/key.properties` (git-ignored):
 
 ```properties
-storeFile=C:/path/to/networthy-upload.jks
+storeFile=C:/path/to/okanzo-upload.jks
 storePassword=...
 keyAlias=upload
 keyPassword=...
@@ -142,4 +142,4 @@ The Flutter app uses the same `MWB1` encrypted backup container as the Kotlin ap
 
 ## License
 
-Released under the [MIT License](LICENSE). Networthy is an independent, open-source project and is not affiliated with or endorsed by Google or Apple. It uses Google's Material Design system for its UI.
+Released under the [MIT License](LICENSE). Okanzo is an independent, open-source project and is not affiliated with or endorsed by Google or Apple. It uses Google's Material Design system for its UI.

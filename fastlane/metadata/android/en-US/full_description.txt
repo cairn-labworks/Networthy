@@ -1,4 +1,4 @@
-Networthy is a private, offline-first Android app for tracking your net worth - your assets minus your liabilities - organised into portfolios.
+Okanzo is a private, offline-first Android app for tracking your net worth - your assets minus your liabilities - organised into portfolios.
 
 Your financial data is stored encrypted on your device and never leaves it, except when you deliberately export an encrypted backup.
 
@@ -16,6 +16,6 @@ Features:
 * Export and import password-protected encrypted backups.
 * Use a Material 3 interface with light, dark, and dynamic-color themes.
 
-Networthy is offline-first. Network access is only used to look up public market prices and exchange rates. Only a ticker symbol or base currency code is sent. There are no accounts, analytics, or trackers, and portfolio values, names, and holdings are never transmitted.
+Okanzo is offline-first. Network access is only used to look up public market prices and exchange rates. Only a ticker symbol or base currency code is sent. There are no accounts, analytics, or trackers, and portfolio values, names, and holdings are never transmitted.
 
 Note on network use: currency exchange rates are refreshed automatically in the background - on first launch and then at most once every 12 hours - so your net worth is always shown correctly in your chosen base currency. Market prices, by contrast, are only fetched when you explicitly refresh or tap fetch-price on an asset.

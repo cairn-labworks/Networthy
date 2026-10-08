@@ -1,9 +1,9 @@
-import 'package:networthy/data/local/entity/asset_entity.dart';
-import 'package:networthy/data/local/entity/liability_entity.dart';
-import 'package:networthy/domain/model/asset_type.dart';
-import 'package:networthy/domain/model/liability_type.dart';
-import 'package:networthy/ui/asset/asset_form_state.dart';
-import 'package:networthy/ui/liability/liability_form_state.dart';
+import 'package:okanzo/data/local/entity/asset_entity.dart';
+import 'package:okanzo/data/local/entity/liability_entity.dart';
+import 'package:okanzo/domain/model/asset_type.dart';
+import 'package:okanzo/domain/model/liability_type.dart';
+import 'package:okanzo/ui/asset/asset_form_state.dart';
+import 'package:okanzo/ui/liability/liability_form_state.dart';
 import 'package:test/test.dart';
 
 void main() {

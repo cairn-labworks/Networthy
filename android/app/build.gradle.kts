@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.cairnlabworks.networthy"
+    namespace = "com.cairnlabworks.okanzo"
     // Google Play requires new apps and updates to target Android 16 (API 36).
     compileSdk = maxOf(flutter.compileSdkVersion, 36)
     ndkVersion = flutter.ndkVersion
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.cairnlabworks.networthy"
+        applicationId = "com.cairnlabworks.okanzo"
         // SQLCipher and the biometric prompt both require API 26+.
         minSdk = 26
         targetSdk = maxOf(flutter.targetSdkVersion, 36)

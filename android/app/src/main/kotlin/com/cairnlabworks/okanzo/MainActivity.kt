@@ -1,4 +1,4 @@
-package com.cairnlabworks.networthy
+package com.cairnlabworks.okanzo
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -43,6 +43,6 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private companion object {
-        const val LINKS_CHANNEL = "com.cairnlabworks.networthy/links"
+        const val LINKS_CHANNEL = "com.cairnlabworks.okanzo/links"
     }
 }

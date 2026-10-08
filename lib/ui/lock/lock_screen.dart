@@ -44,7 +44,7 @@ class _LockScreenState extends State<LockScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 24),
                 child: Text(
-                  'Networthy is locked',
+                  'Okanzo is locked',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,

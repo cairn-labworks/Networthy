@@ -6,11 +6,11 @@ class LinkOpener {
   const LinkOpener._();
 
   static const MethodChannel _channel = MethodChannel(
-    'com.cairnlabworks.networthy/links',
+    'com.cairnlabworks.okanzo/links',
   );
 
   static const String privacyPolicyUrl =
-      'https://cairn-labworks.github.io/networthy/privacy/';
+      'https://cairn-labworks.github.io/okanzo/privacy/';
 
   /// Returns false when the link couldn't be opened, for example when no
   /// browser is installed or the platform has no handler (iOS).

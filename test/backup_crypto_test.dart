@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:networthy/data/backup/backup_models.dart';
-import 'package:networthy/data/security/backup_crypto.dart';
+import 'package:okanzo/data/backup/backup_models.dart';
+import 'package:okanzo/data/security/backup_crypto.dart';
 import 'package:test/test.dart';
 
 /// A backup produced by the original Android/Kotlin implementation
@@ -24,6 +24,10 @@ const String _goldenBackupBase64 =
 /// Java's `PBEKeySpec`.
 const String _goldenPassword = 'pässwörd✓ 1';
 
+// NOTE: this is the decrypted plaintext of the immutable _goldenBackupBase64
+// fixture produced by the original Android/Kotlin app, so the "app" field must
+// stay as the historical name ("Networthy") for the round-trip to be exact.
+// New backups written by this app use the current name (see BackupFile default).
 const String _goldenJson =
     '{"schema":1,"app":"Networthy","exportedAt":1717171717171,"portfolios":'
     '[{"name":"Golden","isDefault":true,"assets":'
@@ -81,7 +85,7 @@ void main() {
           isA<InvalidBackupException>().having(
             (InvalidBackupException e) => e.message,
             'message',
-            'File is not a valid Networthy backup.',
+            'File is not a valid Okanzo backup.',
           ),
         ),
       );
@@ -99,7 +103,7 @@ void main() {
           isA<InvalidBackupException>().having(
             (InvalidBackupException e) => e.message,
             'message',
-            'File is not a valid Networthy backup.',
+            'File is not a valid Okanzo backup.',
           ),
         ),
       );

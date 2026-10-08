@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:networthy/util/currency_util.dart';
+import 'package:okanzo/util/currency_util.dart';
 import 'package:test/test.dart';
 
 void main() {

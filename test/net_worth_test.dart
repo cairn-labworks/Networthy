@@ -1,10 +1,10 @@
-import 'package:networthy/data/local/entity/asset_entity.dart';
-import 'package:networthy/data/local/entity/liability_entity.dart';
-import 'package:networthy/data/repository/currency_converter.dart';
-import 'package:networthy/data/repository/net_worth_calculator.dart';
-import 'package:networthy/domain/model/asset_type.dart';
-import 'package:networthy/domain/model/liability_type.dart';
-import 'package:networthy/domain/model/net_worth_summary.dart';
+import 'package:okanzo/data/local/entity/asset_entity.dart';
+import 'package:okanzo/data/local/entity/liability_entity.dart';
+import 'package:okanzo/data/repository/currency_converter.dart';
+import 'package:okanzo/data/repository/net_worth_calculator.dart';
+import 'package:okanzo/domain/model/asset_type.dart';
+import 'package:okanzo/domain/model/liability_type.dart';
+import 'package:okanzo/domain/model/net_worth_summary.dart';
 import 'package:test/test.dart';
 
 AssetEntity asset({

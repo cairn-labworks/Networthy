@@ -201,7 +201,7 @@ class _PortfolioTitle extends StatelessWidget {
       children: <Widget>[
         Flexible(
           child: Text(
-            state.activePortfolio?.name ?? 'Networthy',
+            state.activePortfolio?.name ?? 'Okanzo',
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,

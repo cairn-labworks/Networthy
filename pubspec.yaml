@@ -1,8 +1,8 @@
-name: networthy
+name: okanzo
 description: "Private, offline-first net worth tracker with on-device encryption."
 publish_to: 'none'
 
-version: 1.2.3+6
+version: 1.2.4+7
 
 environment:
   sdk: ^3.13.0

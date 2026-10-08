@@ -21,11 +21,11 @@ Future<void> main() async {
   // Number and date formatting follows the device locale, as it did on Android.
   Intl.defaultLocale = Platform.localeName.split('.').first;
   final AppContainer container = await AppContainer.create();
-  runApp(AppScope(container: container, child: const NetworthyApp()));
+  runApp(AppScope(container: container, child: const OkanzoApp()));
 }
 
-class NetworthyApp extends StatelessWidget {
-  const NetworthyApp({super.key});
+class OkanzoApp extends StatelessWidget {
+  const OkanzoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +46,7 @@ class NetworthyApp extends StatelessWidget {
             final bool useDynamic =
                 settings.dynamicColor && appTheme == AppTheme.classic;
             return MaterialApp(
-              title: 'Networthy',
+              title: 'Okanzo',
               debugShowCheckedModeBanner: false,
               theme: buildTheme(
                 brightness: Brightness.light,
@@ -131,7 +131,7 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
     if (_prompting) return;
     _prompting = true;
     final String? error = await BiometricAuthenticator.authenticate(
-      title: 'Unlock Networthy',
+      title: 'Unlock Okanzo',
       subtitle: "Confirm it's you to view your net worth",
     );
     _prompting = false;

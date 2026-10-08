@@ -17,7 +17,7 @@ class ApiClient extends http.BaseClient {
         : Platform.isAndroid
         ? 'Android'
         : Platform.operatingSystem;
-    return 'Networthy/1.0 ($platform)';
+    return 'Okanzo/1.0 ($platform)';
   }
 
   @override

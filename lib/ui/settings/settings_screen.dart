@@ -120,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionTitle('Security'),
               _SwitchRow(
                 title: 'App lock',
-                subtitle: 'Require fingerprint or device PIN to open Networthy',
+                subtitle: 'Require fingerprint or device PIN to open Okanzo',
                 value: settings.appLockEnabled,
                 onChanged: _onAppLockChanged,
               ),
@@ -154,12 +154,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(height: 1),
               const _SectionTitle('About'),
               const _SettingRow(
-                title: 'Networthy',
+                title: 'Okanzo',
                 subtitle: 'Version 1.2.3 · Open source (MIT)',
               ),
               _SettingRow(
                 title: 'Privacy policy',
-                subtitle: 'cairn-labworks.github.io/networthy/privacy',
+                subtitle: 'cairn-labworks.github.io/okanzo/privacy',
                 onTap: _openPrivacyPolicy,
               ),
               Padding(
@@ -311,7 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       final Uri? saved = await FilePicker.saveFile(
         dialogTitle: 'Export portfolios',
-        fileName: 'networthy-backup.networthy',
+        fileName: 'okanzo-backup.okanzo',
         bytes: bytes,
       );
       if (saved == null) return;

@@ -1,13 +1,13 @@
-import 'package:networthy/data/local/entity/portfolio_entity.dart';
-import 'package:networthy/data/local/entity/asset_entity.dart';
-import 'package:networthy/data/local/entity/liability_entity.dart';
-import 'package:networthy/data/repository/currency_converter.dart';
-import 'package:networthy/domain/model/asset_type.dart';
-import 'package:networthy/domain/model/liability_type.dart';
-import 'package:networthy/ui/home/category_groups.dart';
-import 'package:networthy/ui/statistics/chart_format.dart';
-import 'package:networthy/util/category_order.dart';
-import 'package:networthy/util/collections.dart';
+import 'package:okanzo/data/local/entity/portfolio_entity.dart';
+import 'package:okanzo/data/local/entity/asset_entity.dart';
+import 'package:okanzo/data/local/entity/liability_entity.dart';
+import 'package:okanzo/data/repository/currency_converter.dart';
+import 'package:okanzo/domain/model/asset_type.dart';
+import 'package:okanzo/domain/model/liability_type.dart';
+import 'package:okanzo/ui/home/category_groups.dart';
+import 'package:okanzo/ui/statistics/chart_format.dart';
+import 'package:okanzo/util/category_order.dart';
+import 'package:okanzo/util/collections.dart';
 import 'package:test/test.dart';
 
 PortfolioEntity portfolio(int id, String name, {bool isDefault = false}) =>

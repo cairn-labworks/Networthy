@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:networthy/data/remote/fx/fx_api.dart';
-import 'package:networthy/data/remote/stock/chart_response.dart';
-import 'package:networthy/data/remote/stock/stock_price_service.dart';
-import 'package:networthy/util/result.dart';
+import 'package:okanzo/data/remote/fx/fx_api.dart';
+import 'package:okanzo/data/remote/stock/chart_response.dart';
+import 'package:okanzo/data/remote/stock/stock_price_service.dart';
+import 'package:okanzo/util/result.dart';
 import 'package:test/test.dart';
 
 StockPriceService serviceReturning(

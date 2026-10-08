@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Networthy — marketing posters</title>
+<title>Okanzo — marketing posters</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
   body { background:#05060a; font-family:'Segoe UI', Roboto, system-ui, sans-serif; }
@@ -264,7 +264,7 @@ function lockScreen(){
   return `<div class="sc" style="padding:0">${statusbar()}
     <div class="lock">
       <div class="logo">${I.trend}</div>
-      <div class="app">Networthy</div>
+      <div class="app">Okanzo</div>
       <div class="masked">₹ ••••••</div>
       <div class="fp">${I.finger}</div>
       <div class="hint">Unlock to view your net worth</div>
@@ -291,7 +291,7 @@ function exportScreen(){
     <div class="top"><div class="h">Export</div><div class="ic">${I.gear}</div></div>
     <div class="expcard"><div class="et">Encrypted backup</div><div class="ed">Your portfolios are packed into a single password-protected file. Nothing is uploaded.</div></div>
     <div class="field"><div class="fl">Portfolios</div><div class="fv">All (3)</div></div>
-    <div class="field"><div class="fl">Format</div><div class="fv">.networthy</div></div>
+    <div class="field"><div class="fl">Format</div><div class="fv">.okanzo</div></div>
     <div class="field"><div class="fl">Encryption</div><div class="fv">AES-256 · GCM</div></div>
     <div class="chk"><div class="box">${I.check}</div><div class="ct">Password protected</div></div>
     <div class="fab" style="left:34px;right:auto">${I.download} Export</div>
@@ -307,7 +307,7 @@ function calloutHTML(c){
 }
 function bottomHTML(b){
   if(b.type==='pills') return `<div class="pills">${b.items.map(x=>`<div class="pill">${x}</div>`).join('')}</div>`;
-  return `<div class="brand"><div class="bl">${I.trend}</div><div class="bn">Networthy</div><div class="bt">${b.text}</div></div>`;
+  return `<div class="brand"><div class="bl">${I.trend}</div><div class="bn">Okanzo</div><div class="bt">${b.text}</div></div>`;
 }
 
 const POSTERS = [
@@ -373,7 +373,7 @@ const POSTERS = [
     sub:'Export an <b>encrypted backup</b> and import it anywhere. Password protected.',
     screen:exportScreen, phoneClass:'',
     callouts:[
-      {icon:'download', color:CO.teal, title:'Encrypted export', sub:'.networthy file', pos:'left:20px; top:740px;'},
+      {icon:'download', color:CO.teal, title:'Encrypted export', sub:'.okanzo file', pos:'left:20px; top:740px;'},
       {icon:'check', color:CO.emerald, title:'Import anywhere', sub:'Move devices freely', pos:'right:16px; top:1040px;'},
     ],
     bottom:{type:'brand', text:'FREE · OPEN SOURCE'},

@@ -1,6 +1,6 @@
-import 'package:networthy/domain/model/app_theme.dart';
-import 'package:networthy/ui/theme/app_style.dart';
-import 'package:networthy/ui/theme/colors.dart';
+import 'package:okanzo/domain/model/app_theme.dart';
+import 'package:okanzo/ui/theme/app_style.dart';
+import 'package:okanzo/ui/theme/colors.dart';
 import 'package:test/test.dart';
 
 void main() {
