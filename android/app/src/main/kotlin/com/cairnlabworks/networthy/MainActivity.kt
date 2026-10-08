@@ -1,4 +1,4 @@
-package com.cairnlabworks.mywealth
+package com.cairnlabworks.networthy
 
 import android.os.Bundle
 import android.view.WindowManager
