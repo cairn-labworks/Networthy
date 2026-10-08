@@ -10,7 +10,7 @@ class LinkOpener {
   );
 
   static const String privacyPolicyUrl =
-      'https://cairn-labworks.github.io/okanzo/privacy/';
+      'https://cairn-labworks.github.io/Okanzo/privacy/';
 
   /// Returns false when the link couldn't be opened, for example when no
   /// browser is installed or the platform has no handler (iOS).

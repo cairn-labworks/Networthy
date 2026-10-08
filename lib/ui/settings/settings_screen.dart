@@ -159,7 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               _SettingRow(
                 title: 'Privacy policy',
-                subtitle: 'cairn-labworks.github.io/okanzo/privacy',
+                subtitle: 'cairn-labworks.github.io/Okanzo/privacy',
                 onTap: _openPrivacyPolicy,
               ),
               Padding(

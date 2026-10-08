@@ -31,7 +31,7 @@ Okanzo is **offline-first**. The only network calls it makes are:
 1. **Stock/fund/crypto prices** — sends only the ticker symbol to a public finance endpoint.
 2. **Exchange rates** — sends only a base currency code to a public, key-less rates endpoint.
 
-No account, no analytics, no tracking. Your portfolio values, names and holdings are never transmitted. Read the full [privacy policy](https://cairn-labworks.github.io/okanzo/privacy/).
+No account, no analytics, no tracking. Your portfolio values, names and holdings are never transmitted. Read the full [privacy policy](https://cairn-labworks.github.io/Okanzo/privacy/).
 
 ## Tech stack
 
