@@ -155,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionTitle('About'),
               const _SettingRow(
                 title: 'Networthy',
-                subtitle: 'Version 1.2.0 · Open source (MIT)',
+                subtitle: 'Version 1.2.3 · Open source (MIT)',
               ),
               _SettingRow(
                 title: 'Privacy policy',
