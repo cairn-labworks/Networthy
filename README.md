@@ -92,7 +92,7 @@ flutter build apk --split-per-abi   # Android, per-ABI APKs
 flutter build ipa           # iOS
 ```
 
-The application id / bundle id is `com.cairnlabworks.okanzo` and the version is `1.0.0`.
+The application id / bundle id is `com.cairnlabworks.okanzo`; the current version is defined in `pubspec.yaml`.
 
 ### Release signing
 
@@ -127,18 +127,14 @@ needs these repository secrets:
 ```bash
 dart format .
 flutter analyze
-dart test                   # pure-Dart unit tests (96 tests)
+dart test                   # pure-Dart unit tests
 ```
 
 The test suite covers the pieces where behaviour must be exact: currency formatting and rounding, net-worth and FX conversion, asset/liability form validation and entity mapping, category ordering, list labels, quote/FX response parsing, and — most importantly — the encrypted backup format, which is verified byte-for-byte against a file produced by the original Android implementation.
 
 ### Migrating from the Android (Kotlin) release
 
-The Flutter app uses the same `MWB1` encrypted backup container as the Kotlin app, so backups exported from the old app import directly here. The on-disk database itself is *not* migrated in place: the SQLCipher passphrase is now stored through `flutter_secure_storage`, so an existing Kotlin database cannot be opened. **Export an encrypted backup from the old app and import it after installing this one.**
-
-### Validation notes
-
-`flutter analyze`, `dart format` and `dart test` all run clean in this repository. Widget tests (`flutter test`) and platform builds (`flutter build`) additionally require the prebuilt Flutter engine artifacts, which were not downloadable in the environment used for the migration; the UI layer is therefore verified by static analysis only.
+The Flutter app uses the same `MWB1` encrypted backup container as the earlier Android release, so backups exported from the old app import directly here. The on-disk database itself is *not* migrated in place: the SQLCipher passphrase is now stored through `flutter_secure_storage`, so an existing older database cannot be opened. **Export an encrypted backup from the old app and import it after installing this one.**
 
 ## License
 
