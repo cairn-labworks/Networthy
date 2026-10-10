@@ -33,6 +33,3 @@ $src    = "marketing\generate.html"
 
 Edit headlines, captions, callouts and the app-screen mockups in the `POSTERS`
 and screen-builder functions inside the generator, then re-run.
-
-> Note: these depict the proposed dark + colorful theme. Once that theme ships in
-> the app, replace these mockups with real on-device captures for full accuracy.
